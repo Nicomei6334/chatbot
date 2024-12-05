@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/scripts.js" defer></script>
+    <title>Venta de verduras-Frutas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!--Barra de navegacion-->
+<div class="top-nav">
+  <a class="active" href="#"><i class="fa fa-fw fa-home"></i>Home</a>
+  <a href="#sobre-nosotros">Nosotros</a>
+  <a href="#registro-contacto">Contacto</a>  
+</div>
+
+  <header class="header"> 
+    <!-- Sección principal de bienvenida -->
+    <div class="header-content container">
+      <div class="header-text">
+        <h1>Automatiza tu Verdulería con Nuestro Chatbot</h1>
+        <p>Ofrecemos un servicio de chatbot diseñado para ayudar a las verdulerías a mejorar la atención al cliente y optimizar sus procesos.</p>
+      </div>
+    </div>
+  </header>
+
+<!-- Sección de beneficios -->
+<div class="row">
+  <div class="side">
+    <h2><i class="fa fa-list"></i>Beneficios de Nuestro Chatbot</h2>
+    <ul>
+      <li href ="#disponibilidad 24-7">Atención al cliente 24/7 para responder y atender</li> 
+      <li href="#gestionInventario">Facilidad para gestionar pedidos y disponibilidad de productos</li>     
+      <li href="#compras">Ahorro de tiempo en la atención personalizada</li>
+    </ul>
+  </div>
+
+  <!-- Sección de servicios de chatbot -->
+  <section class="main">
+    <div class="main-servicios">
+      <h2><i class="fa fa-robot"></i>Servicio de Chatbot para Verdulerías</h2>
+      <p>Automatiza la atención al cliente de tu negocio con nuestro asistente virtual especializado en productos frescos y necesidades de verdulerías.</p>
+      <button onclick="abrirChatbot()">Abrir Chatbot</button>
+    </div>
+
+    <div class="main-objetivo">
+      <h2><i class="fa fa-arrow-right"></i>Objetivo del Chatbot</h2>
+      <p>Nuestro objetivo con el desarrollo de nuestro chatbot es poder optimizar el servicio, atención y gestión de la atención usuario/cliente.
+        Implementando servicios AI dentro del chatbot para que este entregue información precisa a cada uno de ustedes. </p>
+        <p>Nuestro chatbot esta enfocado para el mercado agricola, permitiendo a los pequeños y medianos negocios mejorar su competitividad, reducir costos operativos y tambien ofreciendo un servicio de calidad las 24 horas del dia, los 7 dias de la semana, facilitando una experiencia de compra más eficiente y accesible para sus clientes.</p>
+      <div class="main-objetivos-especificos">
+        <h3><i class="fa fa-arrow-right"></i>Objetivos Especificos</h3>
+      </div>
+      <div class="icon-section">
+        <div class="icon-box">
+          <i class="fa fa-clock"></i>
+          <h4>Disponibilidad 24/7</h4>
+          <p>El chatbot estara disponible para asistir a tus clientes en cualquier momento.</p>
+        </div>
+  
+        <div class="icon-box">
+          <i class="fa fa-chart-bar"></i>
+          <h4>Gestion de Inventarios</h4>
+          <p>Reduce errores y manten un control preciso de tus produtos</p>
+        </div>
+  
+        <div class="icon-box">
+          <i class="fa fa-shopping-cart"></i>
+          <h4>Proceso de Compra</h4>
+          <p>Automatizacion que facilita la experiencia de los usuarios</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seccion Imagen1-->  
+    <div class="head-Images">
+      <h3>Nuestro Asistente Virtual</h3>
+    </div>
+    <div class="Images-container">
+      <div class="mySlides fade">
+        <img src="imagenes/imagen 1.jpg" style="width:100%">
+        <div class="text">Vista pagina principal</div>
+      </div>
+
+      <div class="mySlides fade">
+        <img src="imagenes/imagen 2.jpg" style="width:100%">
+        <div class="text">Vista historial de pedidos</div>
+      </div>
+
+      <div class="mySlides fade">
+        <img src="imagenes/imagen 3.jpg" style="width:100%">
+        <div class="text">Vista Menú admin</div>
+      </div>
+
+      <a class="prev" onclick="plusSlides(-1)">❮</a>
+      <a class="next" onclick="plusSlides(1)">❯</a>
+
+    </div>
+    <br>
+    
+    <div style="text-align:center">
+      <span class="dot" onclick="currentSlide(1)"></span> 
+      <span class="dot" onclick="currentSlide(2)"></span> 
+      <span class="dot" onclick="currentSlide(3)"></span> 
+    </div>
+
+    <div id="sobre-nosotros" class="sobre-nosotros">
+      <h2><i class="fa fa-hand-point-up"></i>Sobre Nosotros</h2>
+      <p>Somos un grupo de estudiantes de Ingenieria Informatica comprometidos con la innovacion tecnologica y su impacto en la sociedad actual. Gracias a nuestros conocimientos logramos crear una solucion practica y eficiente al problema de la comunidad agricola, el cual es el escaso tiempo para atender dudas, confirmar disponibilidad de productos y generar ventas mas eficientemente.</p>
+      <p>Nuestro proyecto no solo automatiza la interacción cliente-vendedor, sino que también optimiza los procesos de gestión de pedidos, contribuyendo a la digitalización de pequeños y medianos negocios. Como equipo compartimos una misión en común, la cual es empoderar a las comunidades agrícolas mediante el uso de tecnología accesible, intuitiva y de alto rendimiento. Desarrollar herramientas como esta nos motiva a aprender y aplicar nuestros conocimientos con el fin de resolver problemas cotidianos de maneras útiles e innovadoras para distintos focos de la sociedad. Este proyecto refleja nuestro compromiso de crear puentes entre la tecnología y las necesidades o problemáticas existentes.</p>
+    </div>  
+  </section>
+</div>
+
+<footer class="footer">
+  <!-- Contact Section -->
+  <div id="registro-contacto" class="registro-contacto">
+    <div class="contacto-header">
+      <h3>Contacto</h3>
+    </div>
+    <p>Cantactanos para saber que necesitas!!!.</p>
+    <div class="input-contacto">
+      <input class="campo" type="text" placeholder="Nombre" name="Name">
+    </div>
+    <div class="input-contacto">
+      <input class="campo" type="email" placeholder="Email" name="Email">
+    </div>
+    <div class="input-contacto">
+      <input class="campo" type="text" placeholder="Descripcion" name="Descripcion">
+    </div>
+    <div class="input-button">
+      <button class="submit-btn" id="submit">Enviar</button>
+    </div>
+
+  </div>
+</footer>
+
+</body>
+</html>

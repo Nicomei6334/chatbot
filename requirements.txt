@@ -1,0 +1,10 @@
+streamlit
+streamlit-option-menu
+sqlalchemy
+bcrypt
+python-dotenv
+mercadopago
+fastapi
+uvicorn
+pandas
+matplotlib
