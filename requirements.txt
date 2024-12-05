@@ -10,3 +10,4 @@ pandas
 matplotlib
 nltk
 tensorflow
+fuzzywuzzy
