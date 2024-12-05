@@ -1,0 +1,107 @@
+{
+    "intents": [
+        {
+            "tag": "saludo",
+            "patterns": ["hola", "qué tal", "cómo estás", "saludos", "hola?", "que tal", "como estas?", "saludos?"],
+            "responses": ["Hola, Bienvenido a la feria, indicanos que necesitas", "¡Hola! Inicia escribiendo 'Quiero comprar verduras'", "Buenos días. Inicia escribiendo 'Quiero comprar verduras'"]
+        },
+        {
+            "tag": "despedida",
+            "patterns": ["adiós", "hasta luego", "nos vemos", "chao", "adiós?", "hasta luego?", "nos vemos?", "chao?"],
+            "responses": ["¡Adiós!", "¡Hasta luego!", "¡Nos vemos! ¡Vuelve pronto!"]
+        },
+        {
+            "tag": "ver_productos",
+            "patterns": ["¿Qué productos tienes?", "Lista de productos", "¿Qué verduras están disponibles?", "Muéstrame tus productos", "qué productos tienes?", "que productos tienes", "productos?", "mostrar productos", "que tienes?"],
+            "responses": ["Estos son los productos que tenemos disponibles: [lista_productos]"]
+        },
+        {
+            "tag": "mostrar_menu",
+            "patterns": [
+                "mostrar menú",
+                "ver menú",
+                "mostrar menu",
+                "ver menu",
+                "menu?",
+                "menú?",
+                "quiero ver el menú",
+                "puedes mostrar el menú?",
+                "puedes mostrar el menu?",
+                "opciones de compra",
+                "quiero comprar",
+                "quiero comprar verduras",
+                "me gustaría comprar",
+                "necesito algunas verduras",
+                "mostrar menú de productos",
+                "puedo ver el menú",
+                "quiero ver el menú",
+                "mostrar menu",
+                "quiero comprar vegetales",
+                "comprar productos",
+                "quiero hacer un pedido"
+            ],
+            "responses": ["Claro, aquí está nuestro menú interactivo:"]
+        },
+        {
+            "tag": "agregar_carrito",
+            "patterns": [
+                "añadir {cantidad} {unidad} de {producto} al carrito",
+                "quiero comprar {cantidad} {unidad} de {producto}",
+                "agregar {cantidad} {unidad} de {producto} a mi carrito",
+                "necesito {cantidad} {unidad} de {producto}",
+                "agregar {producto} en cantidad de {cantidad} {unidad}",
+                "añadir {producto} al carrito",
+                "comprar {producto}",
+                "quiero {producto}",
+                "añadir {producto}",
+                "agrega {producto} al carrito",
+                "agrega {producto}",
+                "quiero comprar {producto}",
+                "puedes agregar {producto}?",
+                "comprar {cantidad} {producto}",
+                "comprar {cantidad} {producto}?"
+            ],
+            "responses": ["He añadido {cantidad} {unidad} de {producto} a tu carrito."]
+        },
+        {
+            "tag": "eliminar_carrito",
+            "patterns": [
+                "eliminar {producto} del carrito",
+                "quitar {producto} de mi carrito",
+                "remover {producto}",
+                "sacar {producto} del carrito",
+                "eliminar {producto}",
+                "quitar {producto}",
+                "remover {producto}",
+                "elimina {producto} del carrito",
+                "puedes eliminar {producto}?"
+            ],
+            "responses": ["He eliminado {producto} de tu carrito."]
+        },
+        {
+            "tag": "consultar_carrito",
+            "patterns": ["¿Qué hay en mi carrito?", "Ver mi carrito", "¿Cuáles son los productos en el carrito?", "Muéstrame mi carrito", "ver carrito", "mostrar carrito", "qué tengo en mi carrito?", "puedes mostrar mi carrito?"],
+            "responses": ["Tu carrito contiene: [contenido_carrito]."]
+        },
+        {
+            "tag": "realizar_compra",
+            "patterns": ["Comprar los productos", "Quiero hacer la compra", "Proceder al pago", "Finalizar mi compra", "realizar compra", "comprar", "pagar", "quiero pagar"],
+            "responses": ["El total de tu compra es de ${total} CLP. ¿Deseas proceder con el pago?"]
+        },
+        {
+            "tag": "confirmar_pago",
+            "patterns": ["Sí", "Quiero pagar", "Proceder", "Confirmar compra", "sí", "si", "quiero proceder", "confirmar"],
+            "responses": ["Tu compra ha sido realizada exitosamente. ¡Gracias por comprar con nosotros!"]
+        },
+        {
+            "tag": "cancelar",
+            "patterns": ["No", "Cancelar", "No quiero", "Anular", "no", "cancelar compra", "no gracias"],
+            "responses": ["No hay problema, tu pedido ha sido cancelado."]
+        },
+        {
+            "tag": "error",
+            "patterns": [],
+            "responses": ["Lo siento, no entendí tu solicitud. ¿Podrías reformularla?"]
+        }
+    ]
+}

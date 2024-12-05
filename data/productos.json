@@ -1,0 +1,192 @@
+[
+    {
+        "nombre": "Tomate",
+        "unidad": "kg",
+        "precio": 1500,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Tomate"
+    },
+    {
+        "nombre": "Lechuga",
+        "unidad": "unidad",
+        "precio": 500,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Lechuga"
+    },
+    {
+        "nombre": "Cebolla",
+        "unidad": "kg",
+        "precio": 1200,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Cebolla"
+    },
+    {
+        "nombre": "Papas",
+        "unidad": "kg",
+        "precio": 800,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Papas"
+    },
+    {
+        "nombre": "Zanahoria",
+        "unidad": "kg",
+        "precio": 1000,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Zanahoria"
+    },
+    {
+        "nombre": "Pimentón",
+        "unidad": "unidad",
+        "precio": 700,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Pimentón"
+    },
+    {
+        "nombre": "Espinaca",
+        "unidad": "kg",
+        "precio": 1600,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Espinaca"
+    },
+    {
+        "nombre": "Brócoli",
+        "unidad": "unidad",
+        "precio": 900,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Brócoli"
+    },
+    {
+        "nombre": "Pepino",
+        "unidad": "unidad",
+        "precio": 600,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Pepino"
+    },
+    {
+        "nombre": "Ajo",
+        "unidad": "paquete",
+        "precio": 1000,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Ajo"
+    },
+    {
+        "nombre": "Zapallo",
+        "unidad": "kg",
+        "precio": 1100,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Zapallo"
+    },
+    {
+        "nombre": "Repollo",
+        "unidad": "unidad",
+        "precio": 800,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Repollo"
+    },
+    {
+        "nombre": "Apio",
+        "unidad": "paquete",
+        "precio": 5000,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Apio"
+    },
+    {
+        "nombre": "Champiñones",
+        "unidad": "paquete",
+        "precio": 2000,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Champiñones"
+    },
+    {
+        "nombre": "Berenjena",
+        "unidad": "unidad",
+        "precio": 700,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Berenjena"
+    },
+    {
+        "nombre": "Rábano",
+        "unidad": "paquete",
+        "precio": 1200,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Rábano"
+    },
+    {
+        "nombre": "Cilantro",
+        "unidad": "paquete",
+        "precio": 700,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Cilantro"
+    },
+    {
+        "nombre": "Perejil",
+        "unidad": "paquete",
+        "precio": 600,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Perejil"
+    },
+    {
+        "nombre": "Albahaca",
+        "unidad": "paquete",
+        "precio": 800,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Albahaca"
+    },
+    {
+        "nombre": "Coliflor",
+        "unidad": "unidad",
+        "precio": 1500,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Coliflor"
+    },
+    {
+        "nombre": "Porotos verdes",
+        "unidad": "kg",
+        "precio": 1200,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Porotos+verdes"
+    },
+    {
+        "nombre": "Choclo",
+        "unidad": "unidad",
+        "precio": 500,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Choclo"
+    },
+    {
+        "nombre": "Betarraga",
+        "unidad": "kg",
+        "precio": 1000,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Betarraga"
+    },
+    {
+        "nombre": "Acelga",
+        "unidad": "kg",
+        "precio": 800,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Acelga"
+    },
+    {
+        "nombre": "Palta",
+        "unidad": "unidad",
+        "precio": 2000,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Palta"
+    },
+    {
+        "nombre": "Habas",
+        "unidad": "kg",
+        "precio": 1500,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Habas"
+    },
+    {
+        "nombre": "Arvejas",
+        "unidad": "kg",
+        "precio": 1800,
+        "stock": 50,
+        "imagen": "https://via.placeholder.com/100?text=Arvejas"
+    }
+    
+]
