@@ -8,7 +8,7 @@ if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 import streamlit as st
-from chatbot import predict_class, get_response, intents, inicializar_carrito, agregar_producto_carrito
+from chatbot import predict_class, get_response, intents
 from streamlit_option_menu import option_menu
 import json
 import bcrypt
