@@ -136,7 +136,22 @@ def gestionar_productos():
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
     """
 
-    # Inicializar valores en session_state ANTES de crear los widgets
+    # Inicializar bandera si no existe
+    if "last_submission_success" not in st.session_state:
+        st.session_state["last_submission_success"] = False
+
+    # Si la última operación fue exitosa, reseteamos los campos antes de mostrar el formulario
+    if st.session_state["last_submission_success"]:
+        st.session_state["nuevo_id"] = 1
+        st.session_state["nuevo_nombre"] = ""
+        st.session_state["nueva_unidad"] = ""
+        st.session_state["nuevo_precio"] = 0.0
+        st.session_state["nuevo_stock"] = 0
+        st.session_state["nueva_imagen"] = ""
+        # Volver a poner la bandera en False
+        st.session_state["last_submission_success"] = False
+
+    # Asegurar que las keys existan antes de crear los widgets
     if "nuevo_id" not in st.session_state:
         st.session_state["nuevo_id"] = 1
     if "nuevo_nombre" not in st.session_state:
@@ -177,14 +192,18 @@ def gestionar_productos():
                             producto.imagen = nueva_imagen
                             db.commit()
                             st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
-                            st.stop()  # Detenemos aquí para refrescar la página
+                            # Indicar que la operación fue exitosa
+                            st.session_state["last_submission_success"] = True
+                            st.stop()
 
                     with col2:
                         if st.button(f"Eliminar Producto ID {producto.idproductos}", key=f"eliminar_{producto.idproductos}"):
                             db.delete(producto)
                             db.commit()
                             st.success(f"Producto ID {producto.idproductos} eliminado correctamente.")
-                            st.stop()  # Detenemos para refrescar la página y ver el cambio inmediato
+                            # Indicar que la operación fue exitosa para refrescar
+                            st.session_state["last_submission_success"] = True
+                            st.stop()
         else:
             st.info("No hay productos registrados.")
 
@@ -218,15 +237,8 @@ def gestionar_productos():
                     db.commit()
                     st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
 
-                    # Restablecer los valores del formulario
-                    st.session_state["nuevo_id"] = 1
-                    st.session_state["nuevo_nombre"] = ""
-                    st.session_state["nueva_unidad"] = ""
-                    st.session_state["nuevo_precio"] = 0.0
-                    st.session_state["nuevo_stock"] = 0
-                    st.session_state["nueva_imagen"] = ""
-
-                    # Detenemos la ejecución para que se reflejen los cambios
+                    # Indicar éxito y detener
+                    st.session_state["last_submission_success"] = True
                     st.stop()
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
@@ -235,6 +247,7 @@ def gestionar_productos():
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
+
 
         
 def mostrar_estadisticas():
