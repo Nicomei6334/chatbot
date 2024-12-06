@@ -13,48 +13,6 @@ from dotenv import load_dotenv
 ADMIN_USERNAME = st.secrets["admin"]["user"]
 ADMIN_PASSWORD = st.secrets["admin"]["pass"]
 
-# Cargar estilos CSS
-def aplicar_estilo_personalizado():
-    """
-    Carga y aplica el estilo desde styles/styles.css.
-    """
-    try:
-        with open("styles/styles.css", "r") as f:
-            css = f.read()
-            st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.error("No se pudo cargar el archivo CSS. Verifica la ruta y el nombre del archivo.")
-def generar_tabla_html(data):
-    """
-    Genera una tabla HTML con los datos proporcionados.
-    """
-    tabla_html = """
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-    """
-    for row in data:
-        tabla_html += f"""
-        <tr>
-            <td>{row['Producto']}</td>
-            <td>{row['Cantidad']}</td>
-            <td>{row['Precio Unitario']}</td>
-            <td>{row['Subtotal']}</td>
-        </tr>
-        """
-    tabla_html += """
-        </tbody>
-    </table>
-    """
-    return tabla_html
-
 def authenticate_admin(username, password):
     """
     Verifica si las credenciales de administrador son correctas.
@@ -65,20 +23,13 @@ def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
-    st.header("Historial de Pedidos")
     db = SessionLocal()
     try:
-        # Obtener todos los pedidos con sus relaciones
-        pedidos = (
-            db.query(Order)
-            .options(
-                joinedload(Order.order_items).joinedload(Order_Item.producto)  # Usar atributos de clase correctamente
-            )
-            .all()
-        )
+        # Obtener todos los pedidos con información del usuario
+        pedidos = db.query(Order).join(User).all()
 
         if not pedidos:
-            st.info("No hay pedidos registrados.")
+            st.info("No hay pedidos para mostrar.")
             return
 
         # Crear opciones para el selectbox
@@ -91,7 +42,7 @@ def mostrar_pedidos():
         pedido_id = int(selected_pedido.split(":")[1].split("-")[0].strip())
 
         # Buscar el pedido seleccionado
-        pedido_seleccionado = next((pedido for pedido in pedidos if pedido.idorders == pedido_id), None)
+        pedido_seleccionado = db.query(Order).filter(Order.idorders == pedido_id).first()
 
         if pedido_seleccionado:
             # Mostrar detalles del pedido seleccionado
@@ -101,7 +52,7 @@ def mostrar_pedidos():
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
             st.write(f"**Total:** ${pedido_seleccionado.total:,.0f} CLP")
 
-            # Mostrar productos asociados al pedido
+            # Mostrar los productos del pedido en una tabla
             if pedido_seleccionado.order_items:
                 st.write("### Productos del Pedido:")
                 productos_data = []
@@ -113,7 +64,7 @@ def mostrar_pedidos():
                         "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
                     })
 
-                # Mostrar tabla
+                # Mostrar los productos como tabla
                 st.table(productos_data)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
@@ -123,6 +74,7 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
+
 
         
 def gestionar_productos():
