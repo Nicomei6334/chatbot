@@ -81,7 +81,9 @@ hr {
 /* Estilo para los encabezados */
 h1, h2, h3, h4, h5, h6 {
     color: #2C3E50;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Arial';
+        sans-serif;
+        margin-bottom: 10px;
 }
 
 /* Estilo para los expanders */
@@ -100,15 +102,26 @@ table {
     margin-top: 15px;
 }
 
-th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+td {
+    background-color: #f9f9f9; /* Fondo claro */
+    color: #333333; /* Texto oscuro */
+    padding: 10px;
+    border-bottom: 1px solid #dddddd;
+    text-align: center;
 }
-
+tr:nth-child(even) td {
+    background-color: #eeeeee; /* Color alternativo para filas pares */
+}
+tr:hover td {
+    background-color: #d0d0d0; /* Color para hover */
+}
 th {
-    background-color: #2C3E50;
-    color: white;
+    background-color: #2C3E50; /* Fondo oscuro */
+    color: #ffffff; /* Texto blanco */
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+
 }
 /* Estilo para las imágenes en la tabla */
 table img {
