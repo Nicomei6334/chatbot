@@ -596,31 +596,6 @@ def registrar_pedido(user_id, carrito, total, payment_id=None):
         db.close()
 
     
-def mostrar_estadisticas():
-    db = SessionLocal()
-    pedidos = db.query(Order).all()
-    db.close()
-    
-    if not pedidos:
-        st.info("No hay pedidos para generar estadísticas.")
-        return
-    
-    total_ventas = sum(pedido.quantity * pedido.price for pedido in pedidos)
-    productos = {}
-    for pedido in pedidos:
-        if pedido.product in productos:
-            productos[pedido.product] += pedido.quantity
-        else:
-            productos[pedido.product] = pedido.quantity
-    
-    productos_df = pd.DataFrame(list(productos.items()), columns=['Producto', 'Cantidad Vendida'])
-    productos_df = productos_df.sort_values(by='Cantidad Vendida', ascending=False)
-    
-    st.subheader("Estadísticas de Ventas")
-    st.write(f"**Ventas Totales:** ${total_ventas:,.0f} CLP")
-    st.write("**Productos Más Vendidos:**")
-    st.dataframe(productos_df)
-
 def cargar_productos():
     db = SessionLocal()
     try:
