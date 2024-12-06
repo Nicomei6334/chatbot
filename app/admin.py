@@ -11,6 +11,36 @@ from dotenv import load_dotenv
 # Obtener las credenciales de administrador desde el archivo .env
 ADMIN_USERNAME = st.secrets["admin"]["user"]
 ADMIN_PASSWORD = st.secrets["admin"]["pass"]
+def generar_tabla_html(data):
+    """
+    Genera una tabla HTML con los datos proporcionados.
+    """
+    tabla_html = """
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+    """
+    for row in data:
+        tabla_html += f"""
+        <tr>
+            <td>{row['Producto']}</td>
+            <td>{row['Cantidad']}</td>
+            <td>{row['Precio Unitario']}</td>
+            <td>{row['Subtotal']}</td>
+        </tr>
+        """
+    tabla_html += """
+        </tbody>
+    </table>
+    """
+    return tabla_html
 
 def authenticate_admin(username, password):
     """
@@ -22,19 +52,22 @@ def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
+    aplicar_estilo_personalizado()  # Aplica los estilos CSS
+
+    st.header("Historial de Pedidos")
     db = SessionLocal()
     try:
-        # Obtener todos los pedidos con información relacionada
-        pedidos = db.query(Order).join(User).all()
+        # Obtener todos los pedidos con información del usuario y productos
+        pedidos = db.query(Order).options(joinedload(Order.order_items).joinedload("producto")).all()
 
         if not pedidos:
-            st.info("No hay pedidos para mostrar.")
+            st.info("No hay pedidos registrados.")
             return
 
-        # Crear una lista de opciones para el selectbox
+        # Crear opciones para el selectbox
         opciones_pedidos = [f"Pedido ID: {pedido.idorders} - Usuario: {pedido.user.email}" for pedido in pedidos]
 
-        # Seleccionar un pedido utilizando selectbox
+        # Seleccionar un pedido
         selected_pedido = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
 
         # Extraer el ID del pedido seleccionado
@@ -51,7 +84,7 @@ def mostrar_pedidos():
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
             st.write(f"**Total:** ${pedido_seleccionado.total:,.0f} CLP")
 
-            # Mostrar los productos del pedido
+            # Mostrar productos asociados al pedido
             if pedido_seleccionado.order_items:
                 st.write("### Productos del Pedido:")
                 productos_data = []
@@ -63,8 +96,9 @@ def mostrar_pedidos():
                         "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
                     })
 
-                # Mostrar los productos en una tabla
-                st.table(productos_data)
+                # Generar y mostrar la tabla HTML
+                tabla_html = generar_tabla_html(productos_data)
+                st.markdown(tabla_html, unsafe_allow_html=True)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
         else:
@@ -146,19 +180,58 @@ def gestionar_productos():
         
 def mostrar_estadisticas():
     """
-    Muestra estadísticas como el total de pedidos y los ingresos totales.
+    Muestra estadísticas clave para que el dueño pueda analizar su negocio.
     """
     db = SessionLocal()
     try:
-        total_pedidos = db.query(func.count(Order.id)).scalar()
-        total_ingresos = db.query(func.sum(Order.price)).scalar()
+        # Estadísticas básicas
+        total_pedidos = db.query(func.count(Order.idorders)).scalar()
+        total_ingresos = db.query(func.sum(Order.total)).scalar()
         
+        # Asegurarse de que no haya valores nulos
         if total_ingresos is None:
             total_ingresos = 0
         
+        # Producto más vendido
+        producto_mas_vendido = (
+            db.query(Producto.nombre, func.sum(OrderItem.quantity).label("total_vendido"))
+            .join(OrderItem, Producto.idproductos == OrderItem.product_id)
+            .group_by(Producto.nombre)
+            .order_by(func.sum(OrderItem.quantity).desc())
+            .first()
+        )
+        
+        # Total de productos vendidos
+        total_productos_vendidos = db.query(func.sum(OrderItem.quantity)).scalar()
+        if total_productos_vendidos is None:
+            total_productos_vendidos = 0
+
+        # Usuario con más pedidos
+        usuario_mas_pedidos = (
+            db.query(User.email, func.count(Order.idorders).label("total_pedidos"))
+            .join(Order, User.idusers == Order.user_id)
+            .group_by(User.email)
+            .order_by(func.count(Order.idorders).desc())
+            .first()
+        )
+        
+        # Mostrar estadísticas en la página
+        st.subheader("📊 Estadísticas del Negocio")
         st.metric("Total de Pedidos", total_pedidos)
         st.metric("Total de Ingresos", f"${total_ingresos:,.0f} CLP")
+        st.metric("Cantidad Total de Productos Vendidos", total_productos_vendidos)
+        
+        if producto_mas_vendido:
+            st.metric("Producto Más Vendido", f"{producto_mas_vendido[0]} ({producto_mas_vendido[1]} unidades)")
+        else:
+            st.metric("Producto Más Vendido", "N/A")
+        
+        if usuario_mas_pedidos:
+            st.metric("Usuario con Más Pedidos", f"{usuario_mas_pedidos[0]} ({usuario_mas_pedidos[1]} pedidos)")
+        else:
+            st.metric("Usuario con Más Pedidos", "N/A")
+
     except Exception as e:
-        st.error("Error al obtener las estadísticas.")
+        st.error(f"Error al obtener las estadísticas: {e}")
     finally:
         db.close()
