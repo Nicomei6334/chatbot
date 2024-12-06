@@ -20,7 +20,7 @@ def authenticate_admin(username, password):
 
 def mostrar_pedidos():
     """
-    Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
+    Muestra todos los pedidos en un menú interactivo. Al seleccionar un pedido, se muestran los detalles.
     """
     db = SessionLocal()
     try:
@@ -31,12 +31,20 @@ def mostrar_pedidos():
             st.info("No hay pedidos para mostrar.")
             return
 
-        # Crear una lista de pedidos para mostrar en un menú desplegable
-        pedidos_dict = {f"Pedido ID: {pedido.id} - Usuario: {pedido.user.email}": pedido for pedido in pedidos}
-        selected_pedido = st.selectbox("Selecciona un pedido para ver los detalles:", list(pedidos_dict.keys()))
+        # Crear opciones para el selectbox
+        opciones_pedidos = [
+            f"Pedido ID: {pedido.id} - Usuario: {pedido.user.email}" for pedido in pedidos
+        ]
+        
+        # Mostrar el selectbox para seleccionar un pedido
+        seleccionado = st.selectbox(
+            "Selecciona un pedido para ver sus detalles:",
+            opciones_pedidos,
+            key="pedido_selectbox"
+        )
 
-        # Obtener el pedido seleccionado
-        pedido = pedidos_dict[selected_pedido]
+        # Encontrar el pedido correspondiente
+        pedido = next(pedido for pedido in pedidos if f"Pedido ID: {pedido.id}" in seleccionado)
 
         # Mostrar detalles del pedido
         st.subheader(f"Detalles del Pedido ID: {pedido.id}")
@@ -48,24 +56,30 @@ def mostrar_pedidos():
         # Mostrar los productos del pedido
         if pedido.order_items:
             st.write("### Productos:")
-            productos_data = []
             for item in pedido.order_items:
-                productos_data.append({
-                    "Producto": item.producto.nombre if item.producto else "Desconocido",
-                    "Cantidad": item.quantity,
-                    "Precio Unitario": item.unit_price,
-                    "Subtotal": item.quantity * item.unit_price,
-                })
+                producto = item.producto.nombre if item.producto else "Desconocido"
+                cantidad = item.quantity
+                precio_unitario = item.unit_price
+                subtotal = cantidad * precio_unitario
+                imagen_url = item.producto.imagen if item.producto and item.producto.imagen else None
 
-            df = pd.DataFrame(productos_data)
-            st.dataframe(df)
+                # Mostrar detalles del producto
+                with st.container():
+                    st.write(f"**Producto:** {producto}")
+                    st.write(f"**Cantidad:** {cantidad}")
+                    st.write(f"**Precio Unitario:** ${precio_unitario:,.0f} CLP")
+                    st.write(f"**Subtotal:** ${subtotal:,.0f} CLP")
+                    if imagen_url:
+                        st.image(imagen_url, caption=producto, width=100)
+                    st.write("---")
         else:
             st.warning("Este pedido no tiene productos asociados.")
-
+    
     except Exception as e:
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
+
 
 
 def gestionar_productos():
