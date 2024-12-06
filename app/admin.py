@@ -70,7 +70,7 @@ def mostrar_pedidos():
 
                 # Crear tabla en HTML con colores
                 tabla_html = """
-                <table style="width:100%; border-collapse: collapse;">
+                <table style="width:100%; border-collapse: collapse; text-align: left;">
                     <thead>
                         <tr style="background-color:#f1f1f1; text-align: left;">
                             <th style="padding: 8px; border: 1px solid #ddd;">Producto</th>
@@ -92,7 +92,7 @@ def mostrar_pedidos():
                     """
                 tabla_html += "</tbody></table>"
 
-                # Mostrar la tabla
+                # Renderizar la tabla como HTML
                 st.markdown(tabla_html, unsafe_allow_html=True)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
@@ -102,6 +102,7 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
+
 
 
         
