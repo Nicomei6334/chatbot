@@ -6,7 +6,7 @@ import logging
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
-
+nltk.download('punkt_tab')
 import streamlit as st
 from chatbot import predict_class, get_response, intents
 from streamlit_option_menu import option_menu
