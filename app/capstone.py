@@ -780,7 +780,7 @@ def chatbot_page():
             st.session_state.mostrar_boton_pago = False
 
 def admin_page():
-    st.header("Panel de Administración")
+    st.header("🛡️Panel de Administración🛠️")
     selected = option_menu(
         menu_title="Administrar",
         options=["Ver Pedidos", "Estadísticas"],
@@ -801,6 +801,8 @@ def admin_page():
         mostrar_pedidos()
     elif selected == "Estadísticas":
         mostrar_estadisticas()
+    elif selected == "Gestionar Productos":
+        gestionar_productos()
 
 def main():
     local_css("styles.css")
