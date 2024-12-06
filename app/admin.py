@@ -7,12 +7,10 @@ from sqlalchemy import func
 import os
 from dotenv import load_dotenv
 
-# Cargar las variables de entorno
-load_dotenv()
 
 # Obtener las credenciales de administrador desde el archivo .env
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+ADMIN_USERNAME = st.secrets["admin"]["user"]
+ADMIN_PASSWORD = st.secrets["admin"]["pass"]
 
 def authenticate_admin(username, password):
     """
