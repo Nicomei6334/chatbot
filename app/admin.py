@@ -238,7 +238,7 @@ def mostrar_estadisticas():
             .first()
         )
 
-        # Si necesitas calcular el total de ventas sumando cantidad * precio unitario de cada OrderItem:
+        # Total de ventas a partir de los OrderItems (cantidad * precio unitario)
         total_ventas = db.query(func.sum(OrderItem.quantity * OrderItem.unit_price)).scalar()
         if total_ventas is None:
             total_ventas = 0
