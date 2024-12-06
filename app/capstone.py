@@ -20,7 +20,7 @@ import time
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 import pandas as pd
-from admin import authenticate_admin, mostrar_pedidos, mostrar_estadisticas
+from admin import authenticate_admin, mostrar_pedidos, mostrar_estadisticas, gestionar_productos
 from payment import crear_preferencia
 # Cargar las variables de entorno
 
