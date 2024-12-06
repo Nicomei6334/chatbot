@@ -193,6 +193,13 @@ def gestionar_productos():
                     db.add(nuevo_producto)
                     db.commit()
                     st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
+                    # Restablecer los valores del formulario usando session_state
+                    st.session_state["nuevo_id"] = 1  # Establece un valor por defecto
+                    st.session_state["nuevo_nombre"] = ""
+                    st.session_state["nueva_unidad"] = ""
+                    st.session_state["nuevo_precio"] = 0.0
+                    st.session_state["nuevo_stock"] = 0
+                    st.session_state["nueva_imagen"] = ""
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
     
