@@ -135,6 +135,21 @@ def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
     """
+
+    # Inicializar valores en session_state ANTES de crear los widgets
+    if "nuevo_id" not in st.session_state:
+        st.session_state["nuevo_id"] = 1
+    if "nuevo_nombre" not in st.session_state:
+        st.session_state["nuevo_nombre"] = ""
+    if "nueva_unidad" not in st.session_state:
+        st.session_state["nueva_unidad"] = ""
+    if "nuevo_precio" not in st.session_state:
+        st.session_state["nuevo_precio"] = 0.0
+    if "nuevo_stock" not in st.session_state:
+        st.session_state["nuevo_stock"] = 0
+    if "nueva_imagen" not in st.session_state:
+        st.session_state["nueva_imagen"] = ""
+
     st.subheader("Gestionar Productos")
     db = SessionLocal()
     
@@ -162,14 +177,14 @@ def gestionar_productos():
                             producto.imagen = nueva_imagen
                             db.commit()
                             st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
-                    
+                            st.stop()  # Detenemos aquí para refrescar la página
+
                     with col2:
                         if st.button(f"Eliminar Producto ID {producto.idproductos}", key=f"eliminar_{producto.idproductos}"):
                             db.delete(producto)
                             db.commit()
                             st.success(f"Producto ID {producto.idproductos} eliminado correctamente.")
-                            st.stop()  # Detenemos aquí para que se vea el cambio inmediato
-
+                            st.stop()  # Detenemos para refrescar la página y ver el cambio inmediato
         else:
             st.info("No hay productos registrados.")
 
@@ -177,20 +192,6 @@ def gestionar_productos():
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
         with st.form("add_product_form"):
-            # Si los campos no están en session_state inicializar
-            if "nuevo_id" not in st.session_state:
-                st.session_state["nuevo_id"] = 1
-            if "nuevo_nombre" not in st.session_state:
-                st.session_state["nuevo_nombre"] = ""
-            if "nueva_unidad" not in st.session_state:
-                st.session_state["nueva_unidad"] = ""
-            if "nuevo_precio" not in st.session_state:
-                st.session_state["nuevo_precio"] = 0.0
-            if "nuevo_stock" not in st.session_state:
-                st.session_state["nuevo_stock"] = 0
-            if "nueva_imagen" not in st.session_state:
-                st.session_state["nueva_imagen"] = ""
-
             nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
             nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
@@ -217,7 +218,7 @@ def gestionar_productos():
                     db.commit()
                     st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
 
-                    # Restablecemos el formulario a sus valores por defecto
+                    # Restablecer los valores del formulario
                     st.session_state["nuevo_id"] = 1
                     st.session_state["nuevo_nombre"] = ""
                     st.session_state["nueva_unidad"] = ""
@@ -225,7 +226,7 @@ def gestionar_productos():
                     st.session_state["nuevo_stock"] = 0
                     st.session_state["nueva_imagen"] = ""
 
-                    # Detener la ejecución aquí para que el cambio se refleje
+                    # Detenemos la ejecución para que se reflejen los cambios
                     st.stop()
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
@@ -234,6 +235,7 @@ def gestionar_productos():
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
+
         
 def mostrar_estadisticas():
     """
