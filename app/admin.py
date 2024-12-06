@@ -65,16 +65,14 @@ def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
-    aplicar_estilo_personalizado()  # Aplica los estilos CSS
-
     st.header("Historial de Pedidos")
     db = SessionLocal()
     try:
-        # Obtener todos los pedidos con información del usuario y productos
+        # Obtener todos los pedidos con sus relaciones
         pedidos = (
             db.query(Order)
             .options(
-                joinedload(Order.order_items).joinedload("producto")  # Corrige las relaciones ORM aquí
+                joinedload(Order.order_items).joinedload(OrderItem.producto)  # Usar atributos de clase correctamente
             )
             .all()
         )
@@ -93,7 +91,7 @@ def mostrar_pedidos():
         pedido_id = int(selected_pedido.split(":")[1].split("-")[0].strip())
 
         # Buscar el pedido seleccionado
-        pedido_seleccionado = db.query(Order).filter(Order.idorders == pedido_id).first()
+        pedido_seleccionado = next((pedido for pedido in pedidos if pedido.idorders == pedido_id), None)
 
         if pedido_seleccionado:
             # Mostrar detalles del pedido seleccionado
@@ -115,9 +113,8 @@ def mostrar_pedidos():
                         "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
                     })
 
-                # Generar y mostrar la tabla HTML
-                tabla_html = generar_tabla_html(productos_data)
-                st.markdown(tabla_html, unsafe_allow_html=True)
+                # Mostrar tabla
+                st.table(productos_data)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
         else:
@@ -126,6 +123,7 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
+
         
 def gestionar_productos():
     """
