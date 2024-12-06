@@ -11,3 +11,4 @@ matplotlib
 nltk
 tensorflow
 fuzzywuzzy
+psycopg2-binary
