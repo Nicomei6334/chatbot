@@ -20,31 +20,50 @@ def authenticate_admin(username, password):
 
 def mostrar_pedidos():
     """
-    Muestra todos los pedidos en una tabla.
+    Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
     db = SessionLocal()
     try:
-        # Suponiendo que el modelo Order tiene una relación con User
+        # Obtener todos los pedidos junto con la información del usuario
         pedidos = db.query(Order).join(User).all()
+
         if not pedidos:
             st.info("No hay pedidos para mostrar.")
             return
-        
-        data = []
-        for pedido in pedidos:
-            data.append({
-                "ID": pedido.id,
-                "Usuario": pedido.user.email,  # Asegúrate de que hay una relación user en Order
-                "Producto": pedido.product,
-                "Cantidad": pedido.quantity,
-                "Precio": pedido.price,
-                "Fecha": pedido.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            })
-        
-        df = pd.DataFrame(data)
-        st.dataframe(df)
+
+        # Crear una lista de pedidos para mostrar en un menú desplegable
+        pedidos_dict = {f"Pedido ID: {pedido.id} - Usuario: {pedido.user.email}": pedido for pedido in pedidos}
+        selected_pedido = st.selectbox("Selecciona un pedido para ver los detalles:", list(pedidos_dict.keys()))
+
+        # Obtener el pedido seleccionado
+        pedido = pedidos_dict[selected_pedido]
+
+        # Mostrar detalles del pedido
+        st.subheader(f"Detalles del Pedido ID: {pedido.id}")
+        st.write(f"**Usuario:** {pedido.user.email}")
+        st.write(f"**Estado:** {pedido.status}")
+        st.write(f"**Fecha:** {pedido.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+        st.write(f"**Total:** ${pedido.total:,.0f} CLP")
+
+        # Mostrar los productos del pedido
+        if pedido.order_items:
+            st.write("### Productos:")
+            productos_data = []
+            for item in pedido.order_items:
+                productos_data.append({
+                    "Producto": item.producto.nombre if item.producto else "Desconocido",
+                    "Cantidad": item.quantity,
+                    "Precio Unitario": item.unit_price,
+                    "Subtotal": item.quantity * item.unit_price,
+                })
+
+            df = pd.DataFrame(productos_data)
+            st.dataframe(df)
+        else:
+            st.warning("Este pedido no tiene productos asociados.")
+
     except Exception as e:
-        st.error("Error al obtener los pedidos.")
+        st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
 
