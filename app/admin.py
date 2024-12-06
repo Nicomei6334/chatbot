@@ -19,7 +19,7 @@ def authenticate_admin(username, password):
     """
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
-mostrar_pedidos():
+def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
