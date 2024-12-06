@@ -116,6 +116,7 @@ def gestionar_productos():
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
         with st.form("add_product_form"):
+            nuevo_id = st.number_input("ID del Producto", min_value=1, step=1)
             nuevo_nombre = st.text_input("Nombre del Producto")
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)")
             nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0)
@@ -124,8 +125,13 @@ def gestionar_productos():
             submit = st.form_submit_button("Añadir Producto")
 
             if submit:
-                if nuevo_nombre and nueva_unidad and nuevo_precio > 0:
+                # Validar que el ID no esté ocupado
+                producto_existente = db.query(Producto).filter(Producto.idproductos == nuevo_id).first()
+                if producto_existente:
+                    st.error(f"El ID {nuevo_id} ya está ocupado. Por favor, elige otro.")
+                elif nuevo_nombre and nueva_unidad and nuevo_precio > 0:
                     nuevo_producto = Producto(
+                        idproductos=nuevo_id,
                         nombre=nuevo_nombre,
                         unidad=nueva_unidad,
                         precio=nuevo_precio,
@@ -134,7 +140,7 @@ def gestionar_productos():
                     )
                     db.add(nuevo_producto)
                     db.commit()
-                    st.success(f"Producto '{nuevo_nombre}' añadido exitosamente.")
+                    st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
     
