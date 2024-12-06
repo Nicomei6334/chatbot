@@ -11,6 +11,18 @@ from dotenv import load_dotenv
 # Obtener las credenciales de administrador desde el archivo .env
 ADMIN_USERNAME = st.secrets["admin"]["user"]
 ADMIN_PASSWORD = st.secrets["admin"]["pass"]
+
+# Cargar estilos CSS
+def aplicar_estilo_personalizado():
+    """
+    Carga y aplica el estilo desde styles/styles.css.
+    """
+    try:
+        with open("styles/styles.css", "r") as f:
+            css = f.read()
+            st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error("No se pudo cargar el archivo CSS. Verifica la ruta y el nombre del archivo.")
 def generar_tabla_html(data):
     """
     Genera una tabla HTML con los datos proporcionados.
