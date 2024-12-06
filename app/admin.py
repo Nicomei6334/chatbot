@@ -23,6 +23,18 @@ def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
+    
+    # Ajustar el estilo si es necesario (Opcional)
+    st.markdown("""
+        <style>
+        /* Ajusta el color de texto y otros estilos según tu preferencia */
+        .css-1cypcdb p, .css-1cypcdb table, .css-1cypcdb label {
+            color: black !important;
+        }
+        .stTable { border: 1px solid #ccc; }
+        </style>
+        """, unsafe_allow_html=True)
+    
     db = SessionLocal()
     try:
         # Obtener todos los pedidos con información del usuario
@@ -50,18 +62,34 @@ def mostrar_pedidos():
             st.write(f"**Usuario:** {pedido_seleccionado.user.email}")
             st.write(f"**Estado:** {pedido_seleccionado.status.capitalize()}")
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-            st.write(f"**Total:** ${pedido_seleccionado.total:,.0f} CLP")
+
+            # Lógica para el total:
+            # Si el pedido está pendiente, mostramos el total original.
+            # Si el pedido está rechazado (equivalente a cancelado), mostramos 0.
+            # Si quieres incluir más condiciones, puedes hacerlo.
+            if pedido_seleccionado.status.lower() == "pendiente":
+                total_mostrar = pedido_seleccionado.total or 0
+            elif pedido_seleccionado.status.lower() == "rechazado":
+                total_mostrar = 0
+            else:
+                # Para otros estados (por ejemplo, aprobado), puedes decidir qué mostrar
+                # Aquí lo dejamos igual al total original o 0 si no existe
+                total_mostrar = pedido_seleccionado.total or 0
+
+            st.write(f"**Total:** ${total_mostrar:,.0f} CLP")
 
             # Mostrar los productos del pedido en una tabla
             if pedido_seleccionado.order_items:
                 st.write("### Productos del Pedido:")
                 productos_data = []
                 for item in pedido_seleccionado.order_items:
+                    producto_nombre = item.producto.nombre if item.producto else "Desconocido"
+                    subtotal = item.quantity * item.unit_price
                     productos_data.append({
-                        "Producto": item.producto.nombre if item.producto else "Desconocido",
+                        "Producto": producto_nombre,
                         "Cantidad": item.quantity,
                         "Precio Unitario": f"${item.unit_price:,.0f}",
-                        "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
+                        "Subtotal": f"${subtotal:,.0f}",
                     })
 
                 # Mostrar los productos como tabla
@@ -74,7 +102,6 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
-        
 def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
