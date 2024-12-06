@@ -13,7 +13,7 @@ from database import SessionLocal, Order
 from dotenv import load_dotenv
 import os
 nltk.download('punkt_tab')
-
+nltk.download('wordnet')
 # Obtener la ruta absoluta al directorio 'data'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Directorio raíz del proyecto
 DATA_DIR = os.path.join(BASE_DIR, 'data')
