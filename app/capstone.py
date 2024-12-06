@@ -783,7 +783,7 @@ def admin_page():
     st.header("🛡️Panel de Administración🛠️")
     selected = option_menu(
         menu_title="Administrar",
-        options=["Ver Pedidos", "Estadísticas"],
+        options=["Ver Pedidos", "Estadísticas","Gestionar Pedidos"],
         icons=["cart", "bar-chart"],
         menu_icon="tools",
         default_index=0,
@@ -821,6 +821,8 @@ def main():
             st.session_state.page = 'admin_ver_pedidos'
         elif selected == "Estadísticas":
             st.session_state.page = 'admin_estadisticas'
+        elif selected== "Gestionar Productos":
+            st.session_state.page= 'gestionar_productos'
         elif selected == "Cerrar Sesión Admin":
             st.session_state.admin_authenticated = False
             st.session_state.page = 'login'
@@ -874,6 +876,11 @@ def main():
     elif st.session_state.page == 'admin_estadisticas':
         if st.session_state.admin_authenticated:
             mostrar_estadisticas()
+        else:
+            st.warning("Acceso denegado.")
+    elif st.session_state.page == 'gestionar_productos':
+        if st.session_state.admin_authenticated:
+            gestionar_productos()
         else:
             st.warning("Acceso denegado.")
     elif st.session_state.page == 'admin':
