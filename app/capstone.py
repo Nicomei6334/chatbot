@@ -476,7 +476,7 @@ def mostrar_menu_interactivo(productos):
             
             with col1:
                 st.markdown(f"### {nombre} ({unidad})")
-                st.markdown(f"**** ${precio:,.0f} CLP")
+                st.markdown(f"Precio ${precio:,.0f} CLP")
                 st.markdown(f"**Stock:** {stock} {unidad}(s)")
             
             with col2:
