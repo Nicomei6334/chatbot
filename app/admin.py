@@ -168,6 +168,7 @@ def gestionar_productos():
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
         with st.form("add_product_form"):
+            # Usamos keys específicas y confiamos en session_state
             nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
             nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
@@ -193,13 +194,15 @@ def gestionar_productos():
                     db.add(nuevo_producto)
                     db.commit()
                     st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
-                    # Restablecer los valores del formulario usando session_state
-                    st.session_state["nuevo_id"] = 1  # Establece un valor por defecto
+
+                    # Restablecer valores en session_state:
+                    st.session_state["nuevo_id"] = 1
                     st.session_state["nuevo_nombre"] = ""
                     st.session_state["nueva_unidad"] = ""
                     st.session_state["nuevo_precio"] = 0.0
                     st.session_state["nuevo_stock"] = 0
                     st.session_state["nueva_imagen"] = ""
+
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
     
