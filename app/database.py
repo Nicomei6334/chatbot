@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-streamlit as st
+import streamlit as st
 
 # Cargar variables de entorno
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
