@@ -135,12 +135,13 @@ def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
     """
+    db = SessionLocal()
 
-    # Inicializar bandera si no existe
+    # Bandera para saber si el último envío fue exitoso
     if "last_submission_success" not in st.session_state:
         st.session_state["last_submission_success"] = False
 
-    # Si la última operación fue exitosa, reseteamos los campos antes de mostrar el formulario
+    # Si el último envío fue exitoso, reiniciar campos antes de mostrar el formulario
     if st.session_state["last_submission_success"]:
         st.session_state["nuevo_id"] = 1
         st.session_state["nuevo_nombre"] = ""
@@ -148,10 +149,9 @@ def gestionar_productos():
         st.session_state["nuevo_precio"] = 0.0
         st.session_state["nuevo_stock"] = 0
         st.session_state["nueva_imagen"] = ""
-        # Volver a poner la bandera en False
         st.session_state["last_submission_success"] = False
 
-    # Asegurar que las keys existan antes de crear los widgets
+    # Asegurar llaves en session_state
     if "nuevo_id" not in st.session_state:
         st.session_state["nuevo_id"] = 1
     if "nuevo_nombre" not in st.session_state:
@@ -166,10 +166,8 @@ def gestionar_productos():
         st.session_state["nueva_imagen"] = ""
 
     st.subheader("Gestionar Productos")
-    db = SessionLocal()
-    
+
     try:
-        # Obtener productos actuales desde la base de datos
         lista_productos = db.query(Producto).all()
 
         if lista_productos:
@@ -192,7 +190,6 @@ def gestionar_productos():
                             producto.imagen = nueva_imagen
                             db.commit()
                             st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
-                            # Indicar que la operación fue exitosa
                             st.session_state["last_submission_success"] = True
                             st.stop()
 
@@ -201,15 +198,14 @@ def gestionar_productos():
                             db.delete(producto)
                             db.commit()
                             st.success(f"Producto ID {producto.idproductos} eliminado correctamente.")
-                            # Indicar que la operación fue exitosa para refrescar
                             st.session_state["last_submission_success"] = True
                             st.stop()
         else:
             st.info("No hay productos registrados.")
 
-        # Añadir nuevos productos
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
+
         with st.form("add_product_form"):
             nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
             nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
@@ -217,10 +213,10 @@ def gestionar_productos():
             nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0, key="nuevo_precio")
             nuevo_stock = st.number_input("Stock", min_value=0, step=1, key="nuevo_stock")
             nueva_imagen = st.text_input("URL de la Imagen", key="nueva_imagen")
+
             submit = st.form_submit_button("Añadir Producto")
 
             if submit:
-                # Validar que el ID no esté ocupado
                 producto_existente = db.query(Producto).filter(Producto.idproductos == nuevo_id).first()
                 if producto_existente:
                     st.error(f"El ID {nuevo_id} ya está ocupado. Por favor, elige otro.")
@@ -236,13 +232,11 @@ def gestionar_productos():
                     db.add(nuevo_producto)
                     db.commit()
                     st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
-
-                    # Indicar éxito y detener
                     st.session_state["last_submission_success"] = True
                     st.stop()
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
-    
+
     except Exception as e:
         st.error(f"Error al gestionar productos: {e}")
     finally:
