@@ -44,14 +44,6 @@ def mostrar_pedidos():
         # Buscar el pedido seleccionado
         pedido_seleccionado = db.query(Order).filter(Order.idorders == pedido_id).first()
 
-        if pedido_seleccionado:
-            # Mostrar detalles del pedido seleccionado
-            st.subheader(f"Detalles del Pedido ID: {pedido_seleccionado.idorders}")
-            st.write(f"**Usuario:** {pedido_seleccionado.user.email}")
-            st.write(f"**Estado:** {pedido_seleccionado.status.capitalize()}")
-            st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-            st.write(f"**Total:** ${pedido_seleccionado.total:,.0f} CLP")
-
             # Mostrar los productos del pedido en una tabla
             if pedido_seleccionado.order_items:
                 st.write("### Productos del Pedido:")
@@ -63,9 +55,57 @@ def mostrar_pedidos():
                         "Precio Unitario": f"${item.unit_price:,.0f}",
                         "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
                     })
-
-                # Mostrar los productos como tabla
-                st.table(productos_data)
+            
+                # Crear tabla en HTML con colores personalizados
+                tabla_html = """
+                <style>
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    th, td {
+                        text-align: left;
+                        padding: 8px;
+                        border: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #4CAF50; /* Verde */
+                        color: white;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f2f2f2;
+                    }
+                    tr:hover {
+                        background-color: #ddd;
+                    }
+                </style>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """
+                for row in productos_data:
+                    tabla_html += f"""
+                    <tr>
+                        <td>{row['Producto']}</td>
+                        <td>{row['Cantidad']}</td>
+                        <td>{row['Precio Unitario']}</td>
+                        <td>{row['Subtotal']}</td>
+                    </tr>
+                    """
+                tabla_html += """
+                    </tbody>
+                </table>
+                """
+            
+                # Mostrar tabla HTML
+                st.markdown(tabla_html, unsafe_allow_html=True)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
         else:
