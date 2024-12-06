@@ -32,7 +32,9 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     idusers = Column(Integer, primary_key=True, index=True)
-    nameusers = Column(String, nullable=False)
+    first_name = Column(String, nullable=False)    # Nuevo campo
+    last_name = Column(String, nullable=False)     # Nuevo campo
+    phone = Column(String, nullable=True) 
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
