@@ -12,7 +12,7 @@ import streamlit as st
 from database import SessionLocal, Order
 from dotenv import load_dotenv
 import os
-
+nltk.download('punkt_tab')
 
 # Obtener la ruta absoluta al directorio 'data'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Directorio raíz del proyecto
