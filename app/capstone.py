@@ -330,8 +330,8 @@ def ver_historial_pedidos():
                 
                 for item in pedido.order_items:
                     producto = item.producto.nombre if item.producto else "Desconocido"
-                    cantidad = item.cantidad
-                    precio = item.precio
+                    cantidad = item.quantity
+                    precio = item.unit_price
                     subtotal = cantidad * precio
                     imagen_url = item.producto.imagen if item.producto and item.producto.imagen else ""
                     if imagen_url:
