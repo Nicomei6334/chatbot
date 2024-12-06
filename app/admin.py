@@ -67,6 +67,7 @@ def mostrar_pedidos():
     finally:
         db.close()
 
+
 def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
