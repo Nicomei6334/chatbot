@@ -89,14 +89,14 @@ def gestionar_productos():
     db = SessionLocal()
     
     try:
-        # Obtener productos actuales
-        productos = db.query(Producto).all()
+        # Obtener productos actuales desde la base de datos
+        lista_productos = db.query(Producto).all()
 
         # Mostrar tabla editable
-        if productos:
+        if lista_productos:
             st.write("Productos Actuales:")
             data = []
-            for producto in productos:
+            for producto in lista_productos:
                 data.append({
                     "ID": producto.idproductos,
                     "Nombre": producto.nombre,
