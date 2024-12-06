@@ -201,7 +201,7 @@ def gestionar_productos():
     finally:
         db.close()
         
- def mostrar_estadisticas():
+def mostrar_estadisticas():
     """
     Muestra estadísticas clave para que el dueño pueda analizar su negocio.
     """
@@ -210,11 +210,11 @@ def gestionar_productos():
         # Estadísticas básicas
         total_pedidos = db.query(func.count(Order.idorders)).scalar()
         total_ingresos = db.query(func.sum(Order.total)).scalar()
-        
-        # Asegurarse de que no haya valores nulos
+
+        # Asegurar que no haya valores nulos
         if total_ingresos is None:
             total_ingresos = 0
-        
+
         # Producto más vendido
         producto_mas_vendido = (
             db.query(Producto.nombre, func.sum(OrderItem.quantity).label("total_vendido"))
@@ -223,7 +223,7 @@ def gestionar_productos():
             .order_by(func.sum(OrderItem.quantity).desc())
             .first()
         )
-        
+
         # Total de productos vendidos
         total_productos_vendidos = db.query(func.sum(OrderItem.quantity)).scalar()
         if total_productos_vendidos is None:
@@ -237,18 +237,24 @@ def gestionar_productos():
             .order_by(func.count(Order.idorders).desc())
             .first()
         )
-        
+
+        # Si necesitas calcular el total de ventas sumando cantidad * precio unitario de cada OrderItem:
+        total_ventas = db.query(func.sum(OrderItem.quantity * OrderItem.unit_price)).scalar()
+        if total_ventas is None:
+            total_ventas = 0
+
         # Mostrar estadísticas en la página
         st.subheader("📊 Estadísticas del Negocio")
         st.metric("Total de Pedidos", total_pedidos)
         st.metric("Total de Ingresos", f"${total_ingresos:,.0f} CLP")
         st.metric("Cantidad Total de Productos Vendidos", total_productos_vendidos)
-        
+        st.metric("Total de Ventas (calculado desde items)", f"${total_ventas:,.0f} CLP")
+
         if producto_mas_vendido:
             st.metric("Producto Más Vendido", f"{producto_mas_vendido[0]} ({producto_mas_vendido[1]} unidades)")
         else:
             st.metric("Producto Más Vendido", "N/A")
-        
+
         if usuario_mas_pedidos:
             st.metric("Usuario con Más Pedidos", f"{usuario_mas_pedidos[0]} ({usuario_mas_pedidos[1]} pedidos)")
         else:
