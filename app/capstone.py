@@ -548,52 +548,6 @@ def admin_login_page():
                 st.error("Credenciales incorrectas.")
 
 
-def mostrar_pedidos():
-    db = SessionLocal()
-    pedidos = db.query(Order).order_by(Order.timestamp.desc()).all()
-    
-    if not pedidos:
-        st.info("No hay pedidos registrados.")
-        db.close()
-        return
-    
-    contenido = "### 📄 Historial de Pedidos de Todos los Usuarios\n\n"
-    contenido += "| ID Pedido | Usuario | Producto | Cantidad | Precio Unitario (CLP) | Fecha | Estado |\n"
-    contenido += "|---|---|---|---|---|---|---|\n"
-    
-    for pedido in pedidos:
-        usuario = db.query(User).filter(User.idusers == pedido.user_id).first()
-        nombre_usuario = usuario.nameusers if usuario else "Desconocido"
-        
-        # Iterar sobre los OrderItems para obtener cada producto en el pedido
-        for item in pedido.order_items:
-            producto = item.producto.nombre if item.producto else "Desconocido"
-            cantidad = item.quantity
-            precio = item.unit_price
-            fecha = pedido.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            status = pedido.status.lower()
-            
-            # Asignar color basado en el estado
-            if status == "pendiente":
-                color = "orange"
-            elif status == "aprobado":
-                color = "green"
-            elif status == "rechazado":
-                color = "red"
-            else:
-                color = "black"
-            
-            # Formatear el estado con color
-            estado_formateado = f"<span style='color:{color}'>{pedido.status.capitalize()}</span>"
-            
-            contenido += f"| {pedido.idorders} | {nombre_usuario} | {producto} | {cantidad} | ${precio:,.0f} | {fecha} | {estado_formateado} |\n"
-    
-    contenido += "\n<style>table {width: 100%;} th, td {padding: 8px 12px;}</style>"
-    
-    st.markdown(contenido, unsafe_allow_html=True)
-    db.close()
-# capstone.py
-
 def registrar_pedido(user_id, carrito, total, payment_id=None):
     db = SessionLocal()
     try:
