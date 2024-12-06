@@ -72,7 +72,7 @@ def mostrar_pedidos():
         pedidos = (
             db.query(Order)
             .options(
-                joinedload(Order.order_items).joinedload(OrderItem.producto)  # Usar atributos de clase correctamente
+                joinedload(Order.order_items).joinedload(Order_Item.producto)  # Usar atributos de clase correctamente
             )
             .all()
         )
