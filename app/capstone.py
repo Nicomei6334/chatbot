@@ -568,8 +568,8 @@ def mostrar_pedidos():
         # Iterar sobre los OrderItems para obtener cada producto en el pedido
         for item in pedido.order_items:
             producto = item.producto.nombre if item.producto else "Desconocido"
-            cantidad = item.cantidad
-            precio = item.precio
+            cantidad = item.quantity
+            precio = item.unit_price
             fecha = pedido.timestamp.strftime("%Y-%m-%d %H:%M:%S")
             status = pedido.status.lower()
             
