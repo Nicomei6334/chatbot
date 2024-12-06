@@ -71,7 +71,11 @@ def mostrar_pedidos():
     db = SessionLocal()
     try:
         # Obtener todos los pedidos con información del usuario y productos
-        pedidos = db.query(Order).options(joinedload(Order.order_items).joinedload("producto")).all()
+        pedidos = (
+            db.query(Order)
+            .options(joinedload(Order.order_items).joinedload(Producto))  # Usamos las referencias directas
+            .all()
+        )
 
         if not pedidos:
             st.info("No hay pedidos registrados.")
@@ -120,7 +124,7 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
-
+        
 def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
