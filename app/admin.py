@@ -18,46 +18,40 @@ def authenticate_admin(username, password):
     """
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
-# app/capstone.py (continuación)
-
 def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
     """
     db = SessionLocal()
     try:
-        # Obtener todos los pedidos junto con la información del usuario
-        pedidos = db.query(Order).join(Order.user).all()
+        # Obtener todos los pedidos con información relacionada
+        pedidos = db.query(Order).join(User).all()
 
         if not pedidos:
             st.info("No hay pedidos para mostrar.")
             return
 
-        # Crear una lista de opciones para el selectbox utilizando el campo correcto 'idorders'
+        # Crear una lista de opciones para el selectbox
         opciones_pedidos = [f"Pedido ID: {pedido.idorders} - Usuario: {pedido.user.email}" for pedido in pedidos]
 
         # Seleccionar un pedido utilizando selectbox
-        selected_pedido_str = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
+        selected_pedido = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
 
-        # Extraer el pedido_id correctamente desde la cadena seleccionada
-        try:
-            pedido_id = int(selected_pedido_str.split(":")[1].split("-")[0].strip())
-        except (IndexError, ValueError):
-            st.error("Formato de pedido seleccionado inválido.")
-            return
+        # Extraer el ID del pedido seleccionado
+        pedido_id = int(selected_pedido.split(":")[1].split("-")[0].strip())
 
-        # Buscar el pedido seleccionado por ID
-        pedido_seleccionado = next((pedido for pedido in pedidos if pedido.idorders == pedido_id), None)
+        # Buscar el pedido seleccionado
+        pedido_seleccionado = db.query(Order).filter(Order.idorders == pedido_id).first()
 
         if pedido_seleccionado:
-            # Mostrar los detalles del pedido seleccionado
+            # Mostrar detalles del pedido seleccionado
             st.subheader(f"Detalles del Pedido ID: {pedido_seleccionado.idorders}")
             st.write(f"**Usuario:** {pedido_seleccionado.user.email}")
             st.write(f"**Estado:** {pedido_seleccionado.status.capitalize()}")
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
             st.write(f"**Total:** ${pedido_seleccionado.total:,.0f} CLP")
 
-            # Mostrar los productos del pedido en una tabla
+            # Mostrar los productos del pedido
             if pedido_seleccionado.order_items:
                 st.write("### Productos del Pedido:")
                 productos_data = []
@@ -65,20 +59,20 @@ def mostrar_pedidos():
                     productos_data.append({
                         "Producto": item.producto.nombre if item.producto else "Desconocido",
                         "Cantidad": item.quantity,
-                        "Precio Unitario": item.unit_price,
+                        "Precio Unitario": f"${item.unit_price:,.0f}",
+                        "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
                     })
 
-                # Mostrar la boleta de compra con la función mejorada
-                mostrar_boleta(pedido_seleccionado.idorders, productos_data, pedido_seleccionado.total)
+                # Mostrar los productos en una tabla
+                st.table(productos_data)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
-
+        else:
+            st.error("Pedido no encontrado.")
     except Exception as e:
         st.error(f"Error al obtener los pedidos: {e}")
-        st.error(traceback.format_exc())
     finally:
         db.close()
-
 
 def gestionar_productos():
     """
