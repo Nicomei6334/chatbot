@@ -146,7 +146,7 @@ def sidebar_menu():
     # Generar una clave única basada en el estado de la sesión para forzar la actualización del menú
     if st.session_state.admin_authenticated:
         menu_key = "menu_admin"
-        options = ["Ver Pedidos", "Estadísticas", "Cerrar Sesión Admin"]
+        options = ["Ver Pedidos", "Estadísticas", "Gestionar Productos",  "Cerrar Sesión Admin"]
         icons = ["cart", "bar-chart", "box-arrow-right"]
         menu_title = "Administrador"
     elif st.session_state.logged_in:
