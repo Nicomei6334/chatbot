@@ -38,7 +38,11 @@ def mostrar_pedidos():
         background-color: #f0f0f0 !important;
         color: #000000 !important;
     }
-    
+     /* Seleccionar los encabezados de fila (índices) */
+    table th[scope="row"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
     /* Estilos para las celdas del cuerpo de la tabla */
     tbody tr td {
         background-color: #ffffff !important;
