@@ -183,15 +183,23 @@ def gestionar_productos():
                     col1, col2 = st.columns(2)
                     with col1:
                         if st.button(f"Guardar Cambios para ID {producto.idproductos}", key=f"guardar_{producto.idproductos}"):
-                            producto.nombre = nuevo_nombre
-                            producto.unidad = nueva_unidad
-                            producto.precio = nuevo_precio
-                            producto.stock = nuevo_stock
-                            producto.imagen = nueva_imagen
-                            db.commit()
-                            st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
-                            st.session_state["last_submission_success"] = True
-                            st.stop()
+                            # Validar si el nombre ya existe en otro producto distinto del actual
+                            producto_mismo_nombre = db.query(Producto).filter(
+                                Producto.nombre == nuevo_nombre, 
+                                Producto.idproductos != producto.idproductos
+                            ).first()
+                            if producto_mismo_nombre:
+                                st.error("Ya existe otro producto con el mismo nombre. Por favor, elige otro nombre.")
+                            else:
+                                producto.nombre = nuevo_nombre
+                                producto.unidad = nueva_unidad
+                                producto.precio = nuevo_precio
+                                producto.stock = nuevo_stock
+                                producto.imagen = nueva_imagen
+                                db.commit()
+                                st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
+                                st.session_state["last_submission_success"] = True
+                                st.stop()
 
                     with col2:
                         if st.button(f"Eliminar Producto ID {producto.idproductos}", key=f"eliminar_{producto.idproductos}"):
@@ -217,9 +225,15 @@ def gestionar_productos():
             submit = st.form_submit_button("Añadir Producto")
 
             if submit:
-                producto_existente = db.query(Producto).filter(Producto.idproductos == nuevo_id).first()
-                if producto_existente:
+                # Verificar ID único
+                producto_existente_id = db.query(Producto).filter(Producto.idproductos == nuevo_id).first()
+                # Verificar nombre único
+                producto_existente_nombre = db.query(Producto).filter(Producto.nombre == nuevo_nombre).first()
+
+                if producto_existente_id:
                     st.error(f"El ID {nuevo_id} ya está ocupado. Por favor, elige otro.")
+                elif producto_existente_nombre:
+                    st.error("Ya existe otro producto con el mismo nombre. Por favor, elige otro nombre.")
                 elif nuevo_nombre and nueva_unidad and nuevo_precio > 0:
                     nuevo_producto = Producto(
                         idproductos=nuevo_id,
@@ -241,6 +255,7 @@ def gestionar_productos():
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
+
 
 
         
