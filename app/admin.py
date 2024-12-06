@@ -116,12 +116,12 @@ def gestionar_productos():
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
         with st.form("add_product_form"):
-            nuevo_id = st.number_input("ID del Producto", min_value=1, step=1)
-            nuevo_nombre = st.text_input("Nombre del Producto")
-            nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)")
-            nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0)
-            nuevo_stock = st.number_input("Stock", min_value=0, step=1)
-            nueva_imagen = st.text_input("URL de la Imagen")
+            nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
+            nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
+            nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
+            nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0, key="nuevo_precio")
+            nuevo_stock = st.number_input("Stock", min_value=0, step=1, key="nuevo_stock")
+            nueva_imagen = st.text_input("URL de la Imagen", key="nueva_imagen")
             submit = st.form_submit_button("Añadir Producto")
 
             if submit:
