@@ -73,7 +73,9 @@ def mostrar_pedidos():
         # Obtener todos los pedidos con información del usuario y productos
         pedidos = (
             db.query(Order)
-            .options(joinedload(Order.order_items).joinedload(Producto))  # Usamos las referencias directas
+            .options(
+                joinedload(Order.order_items).joinedload("producto")  # Corrige las relaciones ORM aquí
+            )
             .all()
         )
 
