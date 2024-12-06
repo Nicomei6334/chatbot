@@ -18,6 +18,8 @@ def authenticate_admin(username, password):
     """
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
+# app/capstone.py (continuación)
+
 def mostrar_pedidos():
     """
     Muestra todos los pedidos en una lista interactiva. Al seleccionar un pedido, se muestran los detalles.
@@ -25,25 +27,31 @@ def mostrar_pedidos():
     db = SessionLocal()
     try:
         # Obtener todos los pedidos junto con la información del usuario
-        pedidos = db.query(Order).join(User).all()
+        pedidos = db.query(Order).join(Order.user).all()
 
         if not pedidos:
             st.info("No hay pedidos para mostrar.")
             return
 
-        # Crear una lista de opciones para el selectbox
-        opciones_pedidos = [f"Pedido ID: {pedido.id} - Usuario: {pedido.user.email}" for pedido in pedidos]
+        # Crear una lista de opciones para el selectbox utilizando el campo correcto 'idorders'
+        opciones_pedidos = [f"Pedido ID: {pedido.idorders} - Usuario: {pedido.user.email}" for pedido in pedidos]
 
         # Seleccionar un pedido utilizando selectbox
         selected_pedido_str = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
 
+        # Extraer el pedido_id correctamente desde la cadena seleccionada
+        try:
+            pedido_id = int(selected_pedido_str.split(":")[1].split("-")[0].strip())
+        except (IndexError, ValueError):
+            st.error("Formato de pedido seleccionado inválido.")
+            return
+
         # Buscar el pedido seleccionado por ID
-        pedido_id = int(selected_pedido_str.split(":")[1].split("-")[0].strip())
-        pedido_seleccionado = next((pedido for pedido in pedidos if pedido.id == pedido_id), None)
+        pedido_seleccionado = next((pedido for pedido in pedidos if pedido.idorders == pedido_id), None)
 
         if pedido_seleccionado:
             # Mostrar los detalles del pedido seleccionado
-            st.subheader(f"Detalles del Pedido ID: {pedido_seleccionado.id}")
+            st.subheader(f"Detalles del Pedido ID: {pedido_seleccionado.idorders}")
             st.write(f"**Usuario:** {pedido_seleccionado.user.email}")
             st.write(f"**Estado:** {pedido_seleccionado.status.capitalize()}")
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -57,18 +65,17 @@ def mostrar_pedidos():
                     productos_data.append({
                         "Producto": item.producto.nombre if item.producto else "Desconocido",
                         "Cantidad": item.quantity,
-                        "Precio Unitario": f"${item.unit_price:,.0f} CLP",
-                        "Subtotal": f"${item.quantity * item.unit_price:,.0f} CLP",
+                        "Precio Unitario": item.unit_price,
                     })
 
-                # Crear DataFrame y mostrarlo con Streamlit
-                df = pd.DataFrame(productos_data)
-                st.table(df)  # Cambié st.dataframe por st.table para que se vea mejor y más estructurado
+                # Mostrar la boleta de compra con la función mejorada
+                mostrar_boleta(pedido_seleccionado.idorders, productos_data, pedido_seleccionado.total)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
 
     except Exception as e:
         st.error(f"Error al obtener los pedidos: {e}")
+        st.error(traceback.format_exc())
     finally:
         db.close()
 
