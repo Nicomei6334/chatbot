@@ -26,17 +26,17 @@ def mostrar_pedidos():
     """
     db = SessionLocal()
     try:
-        # Obtener todos los pedidos con información relacionada
+        # Obtener todos los pedidos con información del usuario
         pedidos = db.query(Order).join(User).all()
 
         if not pedidos:
             st.info("No hay pedidos para mostrar.")
             return
 
-        # Crear una lista de opciones para el selectbox
+        # Crear opciones para el selectbox
         opciones_pedidos = [f"Pedido ID: {pedido.idorders} - Usuario: {pedido.user.email}" for pedido in pedidos]
 
-        # Seleccionar un pedido utilizando selectbox
+        # Seleccionar un pedido
         selected_pedido = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
 
         # Extraer el ID del pedido seleccionado
@@ -53,7 +53,7 @@ def mostrar_pedidos():
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
             st.write(f"**Total:** ${pedido_seleccionado.total:,.0f} CLP")
 
-            # Mostrar los productos del pedido
+            # Mostrar los productos del pedido en una tabla
             if pedido_seleccionado.order_items:
                 st.write("### Productos del Pedido:")
                 productos_data = []
@@ -65,7 +65,7 @@ def mostrar_pedidos():
                         "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
                     })
 
-                # Mostrar los productos en una tabla
+                # Mostrar los productos como tabla
                 st.table(productos_data)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
