@@ -201,7 +201,7 @@ def gestionar_productos():
     finally:
         db.close()
         
- mostrar_estadisticas():
+ def mostrar_estadisticas():
     """
     Muestra estadísticas clave para que el dueño pueda analizar su negocio.
     """
