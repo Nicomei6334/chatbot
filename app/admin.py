@@ -50,6 +50,80 @@ def mostrar_pedidos():
     finally:
         db.close()
 
+def gestionar_productos():
+    """
+    Permite al administrador gestionar los productos (editar, añadir, eliminar).
+    """
+    st.subheader("Gestionar Productos")
+    db = SessionLocal()
+    
+    try:
+        # Obtener productos actuales
+        productos = db.query(Producto).all()
+
+        # Mostrar tabla editable
+        if productos:
+            st.write("Productos Actuales:")
+            data = []
+            for producto in productos:
+                data.append({
+                    "ID": producto.idproductos,
+                    "Nombre": producto.nombre,
+                    "Unidad": producto.unidad,
+                    "Precio": producto.precio,
+                    "Stock": producto.stock,
+                    "Imagen URL": producto.imagen
+                })
+            
+            df = pd.DataFrame(data)
+            edited_df = st.experimental_data_editor(df, num_rows="dynamic", key="product_editor")
+
+            # Guardar cambios realizados por el administrador
+            if st.button("Guardar Cambios"):
+                for index, row in edited_df.iterrows():
+                    producto = db.query(Producto).filter(Producto.idproductos == row["ID"]).first()
+                    if producto:
+                        producto.nombre = row["Nombre"]
+                        producto.unidad = row["Unidad"]
+                        producto.precio = row["Precio"]
+                        producto.stock = row["Stock"]
+                        producto.imagen = row["Imagen URL"]
+                        db.commit()
+                st.success("Cambios guardados exitosamente.")
+        else:
+            st.info("No hay productos registrados.")
+
+        # Añadir nuevos productos
+        st.write("---")
+        st.subheader("Añadir Nuevo Producto")
+        with st.form("add_product_form"):
+            nuevo_nombre = st.text_input("Nombre del Producto")
+            nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)")
+            nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0)
+            nuevo_stock = st.number_input("Stock", min_value=0, step=1)
+            nueva_imagen = st.text_input("URL de la Imagen")
+            submit = st.form_submit_button("Añadir Producto")
+
+            if submit:
+                if nuevo_nombre and nueva_unidad and nuevo_precio > 0:
+                    nuevo_producto = Producto(
+                        nombre=nuevo_nombre,
+                        unidad=nueva_unidad,
+                        precio=nuevo_precio,
+                        stock=nuevo_stock,
+                        imagen=nueva_imagen
+                    )
+                    db.add(nuevo_producto)
+                    db.commit()
+                    st.success(f"Producto '{nuevo_nombre}' añadido exitosamente.")
+                else:
+                    st.error("Por favor, completa todos los campos obligatorios.")
+    
+    except Exception as e:
+        st.error(f"Error al gestionar productos: {e}")
+    finally:
+        db.close()
+
 def mostrar_estadisticas():
     """
     Muestra estadísticas como el total de pedidos y los ingresos totales.
