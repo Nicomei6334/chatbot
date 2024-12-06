@@ -3,7 +3,8 @@
 import streamlit as st
 from database import SessionLocal, Order, User, Producto  # Asegúrate de que estos modelos están definidos en database.py
 import pandas as pd
-from sqlalchemy import func, joinedload
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 import os
 from dotenv import load_dotenv
 
