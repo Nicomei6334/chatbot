@@ -88,8 +88,8 @@ def mostrar_pedidos():
         if pedido_seleccionado:
             # Mostrar detalles del pedido seleccionado
             st.subheader(f"Detalles del Pedido ID: {pedido_seleccionado.idorders}")
-            st.write(f"**Usuario:** {pedido_seleccionado.user.first_name} , {pedido_seleccionado.user.last_name")
-            st.write(f"**Usuario:** {pedido_seleccionado.user.email}
+            st.write(f"**Usuario:** {pedido_seleccionado.user.first_name} {pedido_seleccionado.user.last_name}")
+            st.write(f"**Usuario:** {pedido_seleccionado.user.email}")
             st.write(f"**Numero:** {pedido_seleccionado.user.phone}")
             st.write(f"**Estado:** {pedido_seleccionado.status.capitalize()}")
             st.write(f"**Fecha:** {pedido_seleccionado.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
