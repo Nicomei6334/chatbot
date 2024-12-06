@@ -503,19 +503,20 @@ def mostrar_menu_interactivo(productos):
                 else:
                     st.session_state.carrito.pop(nombre, None)
     
-    # Calcular subtotal sin IVA
+    
+    # Calcular subtotal sin IVA, IVA y total con IVA
     subtotal = sum(
         (producto.precio / 1.19) * st.session_state.get(f"cantidad_{producto.nombre}", 0) 
         for producto in productos_filtrados
     )
     
-    # Calcular IVA
     iva_total = subtotal * 0.19
-    
-    # Calcular total con IVA
     total_con_iva = subtotal + iva_total
     
-    # Mostrar el subtotal y total
+    # Guardar el total en el estado de la sesión
+    st.session_state['total_pedido'] = total_con_iva
+    
+    # Mostrar el subtotal, IVA y total
     st.markdown("---")
     st.write(f"**Subtotal** (sin IVA): ${subtotal:,.0f} CLP")
     st.write(f"**IVA (19%)**: ${iva_total:,.0f} CLP")
