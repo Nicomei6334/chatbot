@@ -193,19 +193,21 @@ def sidebar_menu():
         )
     return selected
 
-# Función para registrar un nuevo usuario
 def register_page():
     st.header("Registro de Usuario")
     with st.form("register_form"):
+        first_name = st.text_input("Nombre", key="register_first_name")
+        last_name = st.text_input("Apellido", key="register_last_name")
+        phone = st.text_input("Teléfono", key="register_phone")
         email = st.text_input("Correo Electrónico", key="register_user_email")
         password = st.text_input("Contraseña", type="password", key="register_password")
         confirm_password = st.text_input("Confirmar Contraseña", type="password", key="register_confirm_password")
         submit = st.form_submit_button("Registrarse")
-        
+     
         if submit:
             # Validar los campos del formulario
-            if not email or not password or not confirm_password:
-                st.error("Por favor, completa todos los campos.")
+            if not first_name or not last_name or not email or not password or not confirm_password:
+                st.error("Por favor, completa todos los campos requeridos.")
             elif not validar_dominio(email):
                 st.error("Dominio de correo no permitido. Usa gmail.com, outlook.com, hotmail.com o un dominio institucional.")
             elif password != confirm_password:
@@ -219,8 +221,13 @@ def register_page():
                         st.error("El correo electrónico ya está registrado.")
                     else:
                         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-                        nombre_usuario = email.split('@')[0]
-                        new_user = User(nameusers=nombre_usuario, email=email, password=hashed_password.decode('utf-8'))
+                        new_user = User(
+                            first_name=first_name,
+                            last_name=last_name,
+                            phone=phone,
+                            email=email,
+                            password=hashed_password.decode('utf-8')
+                        )
                         db.add(new_user)
                         db.commit()
                         
@@ -237,8 +244,6 @@ def register_page():
                         st.success("Registro exitoso. Ahora puedes acceder al chatbot.")
                         # Reiniciar el menú para forzar la actualización
                         st.session_state.menu_key = f"menu_user_{st.session_state.user_id}"
-                        
-                        # No usar st.experimental_rerun(), simplemente continúa
                 except IntegrityError:
                     db.rollback()
                     st.error("El correo electrónico ya está registrado.")
@@ -247,6 +252,7 @@ def register_page():
                     st.error("Ocurrió un error durante el registro.")
                 finally:
                     db.close()
+
 
 # Función para autenticar usuario
 def login_page():
