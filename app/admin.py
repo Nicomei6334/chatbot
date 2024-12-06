@@ -26,27 +26,31 @@ def mostrar_pedidos():
     """
     db = SessionLocal()
     try:
-        # Obtener todos los pedidos con información del usuario
-        pedidos = db.query(Order).join(User).all()
+        # Obtener todos los pedidos junto con la información del usuario
+        pedidos = db.query(Order).join(Order.user).all()
 
         if not pedidos:
             st.info("No hay pedidos para mostrar.")
             return
 
-        # Crear opciones para el selectbox
+        # Crear una lista de opciones para el selectbox utilizando el campo correcto 'idorders'
         opciones_pedidos = [f"Pedido ID: {pedido.idorders} - Usuario: {pedido.user.email}" for pedido in pedidos]
 
-        # Seleccionar un pedido
-        selected_pedido = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
+        # Seleccionar un pedido utilizando selectbox
+        selected_pedido_str = st.selectbox("Selecciona un pedido para ver los detalles:", opciones_pedidos)
 
-        # Extraer el ID del pedido seleccionado
-        pedido_id = int(selected_pedido.split(":")[1].split("-")[0].strip())
+        # Extraer el pedido_id correctamente desde la cadena seleccionada
+        try:
+            pedido_id = int(selected_pedido_str.split(":")[1].split("-")[0].strip())
+        except (IndexError, ValueError):
+            st.error("Formato de pedido seleccionado inválido.")
+            return
 
-        # Buscar el pedido seleccionado
-        pedido_seleccionado = db.query(Order).filter(Order.idorders == pedido_id).first()
+        # Buscar el pedido seleccionado por ID
+        pedido_seleccionado = next((pedido for pedido in pedidos if pedido.idorders == pedido_id), None)
 
         if pedido_seleccionado:
-            # Mostrar detalles del pedido seleccionado
+            # Mostrar los detalles del pedido seleccionado
             st.subheader(f"Detalles del Pedido ID: {pedido_seleccionado.idorders}")
             st.write(f"**Usuario:** {pedido_seleccionado.user.email}")
             st.write(f"**Estado:** {pedido_seleccionado.status.capitalize()}")
@@ -61,18 +65,17 @@ def mostrar_pedidos():
                     productos_data.append({
                         "Producto": item.producto.nombre if item.producto else "Desconocido",
                         "Cantidad": item.quantity,
-                        "Precio Unitario": f"${item.unit_price:,.0f}",
-                        "Subtotal": f"${item.quantity * item.unit_price:,.0f}",
+                        "Precio Unitario": item.unit_price,
                     })
 
-                # Mostrar los productos como tabla
-                st.table(productos_data)
+                # Mostrar la boleta de compra con la función mejorada
+                mostrar_boleta(pedido_seleccionado.idorders, productos_data, pedido_seleccionado.total)
             else:
                 st.warning("Este pedido no tiene productos asociados.")
-        else:
-            st.error("Pedido no encontrado.")
+
     except Exception as e:
         st.error(f"Error al obtener los pedidos: {e}")
+        st.error(traceback.format_exc())
     finally:
         db.close()
 
