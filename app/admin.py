@@ -90,7 +90,7 @@ def gestionar_productos():
     
     try:
         # Obtener productos actuales
-        productos = db.query(Producto).all()
+        productos = db.query(productos).all()
 
         # Mostrar tabla editable
         if productos:
