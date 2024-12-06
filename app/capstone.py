@@ -60,8 +60,8 @@ def local_css(file_name):
 # Cargar el archivo CSS al inicio
 
 # Obtener las credenciales de administrador desde el archivo .env
-ADMIN_USERNAME = st.secrets[admin][user]
-ADMIN_PASSWORD = st.secrets[admin][pass]
+ADMIN_USERNAME = st.secrets["admin"]["user"]
+ADMIN_PASSWORD = st.secrets["admin"]["pass"]
 
 
 # Función para cargar el historial de mensajes
