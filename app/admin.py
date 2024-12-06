@@ -79,8 +79,6 @@ def mostrar_pedidos():
     finally:
         db.close()
 
-
-
 def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
@@ -92,35 +90,25 @@ def gestionar_productos():
         # Obtener productos actuales desde la base de datos
         lista_productos = db.query(Producto).all()
 
-        # Mostrar tabla editable
         if lista_productos:
             st.write("Productos Actuales:")
-            data = []
             for producto in lista_productos:
-                data.append({
-                    "ID": producto.idproductos,
-                    "Nombre": producto.nombre,
-                    "Unidad": producto.unidad,
-                    "Precio": producto.precio,
-                    "Stock": producto.stock,
-                    "Imagen URL": producto.imagen
-                })
-            
-            df = pd.DataFrame(data)
-            edited_df = st.experimental_data_editor(df, num_rows="dynamic", key="product_editor")
-
-            # Guardar cambios realizados por el administrador
-            if st.button("Guardar Cambios"):
-                for index, row in edited_df.iterrows():
-                    producto = db.query(Producto).filter(Producto.idproductos == row["ID"]).first()
-                    if producto:
-                        producto.nombre = row["Nombre"]
-                        producto.unidad = row["Unidad"]
-                        producto.precio = row["Precio"]
-                        producto.stock = row["Stock"]
-                        producto.imagen = row["Imagen URL"]
+                with st.expander(f"Producto ID: {producto.idproductos} - {producto.nombre}"):
+                    nuevo_nombre = st.text_input("Nombre", value=producto.nombre, key=f"nombre_{producto.idproductos}")
+                    nueva_unidad = st.text_input("Unidad", value=producto.unidad, key=f"unidad_{producto.idproductos}")
+                    nuevo_precio = st.number_input("Precio", value=producto.precio, step=1.0, key=f"precio_{producto.idproductos}")
+                    nuevo_stock = st.number_input("Stock", value=producto.stock, step=1, key=f"stock_{producto.idproductos}")
+                    nueva_imagen = st.text_input("URL de la Imagen", value=producto.imagen, key=f"imagen_{producto.idproductos}")
+                    
+                    if st.button(f"Guardar Cambios para ID {producto.idproductos}", key=f"guardar_{producto.idproductos}"):
+                        producto.nombre = nuevo_nombre
+                        producto.unidad = nueva_unidad
+                        producto.precio = nuevo_precio
+                        producto.stock = nuevo_stock
+                        producto.imagen = nueva_imagen
                         db.commit()
-                st.success("Cambios guardados exitosamente.")
+                        st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
+
         else:
             st.info("No hay productos registrados.")
 
@@ -154,7 +142,7 @@ def gestionar_productos():
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
-
+        
 def mostrar_estadisticas():
     """
     Muestra estadísticas como el total de pedidos y los ingresos totales.
