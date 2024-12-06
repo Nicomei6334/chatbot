@@ -12,4 +12,3 @@ nltk
 tensorflow
 fuzzywuzzy
 psycopg2-binary
-nltk.download('punkt_tab')
