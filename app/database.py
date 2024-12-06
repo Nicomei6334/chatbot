@@ -11,7 +11,7 @@ from datetime import datetime
 # Cargar variables de entorno
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(BASE_DIR, '.env'))
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = st.secrets["connections.supabase"]["SUPABASE_URL"]
 
 try:
     # Crear motor de base de datos
