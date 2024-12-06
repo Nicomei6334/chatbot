@@ -151,15 +151,24 @@ def gestionar_productos():
                     nuevo_precio = st.number_input("Precio", value=producto.precio, step=1.0, key=f"precio_{producto.idproductos}")
                     nuevo_stock = st.number_input("Stock", value=producto.stock, step=1, key=f"stock_{producto.idproductos}")
                     nueva_imagen = st.text_input("URL de la Imagen", value=producto.imagen, key=f"imagen_{producto.idproductos}")
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button(f"Guardar Cambios para ID {producto.idproductos}", key=f"guardar_{producto.idproductos}"):
+                            producto.nombre = nuevo_nombre
+                            producto.unidad = nueva_unidad
+                            producto.precio = nuevo_precio
+                            producto.stock = nuevo_stock
+                            producto.imagen = nueva_imagen
+                            db.commit()
+                            st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
                     
-                    if st.button(f"Guardar Cambios para ID {producto.idproductos}", key=f"guardar_{producto.idproductos}"):
-                        producto.nombre = nuevo_nombre
-                        producto.unidad = nueva_unidad
-                        producto.precio = nuevo_precio
-                        producto.stock = nuevo_stock
-                        producto.imagen = nueva_imagen
-                        db.commit()
-                        st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
+                    with col2:
+                        if st.button(f"Eliminar Producto ID {producto.idproductos}", key=f"eliminar_{producto.idproductos}"):
+                            db.delete(producto)
+                            db.commit()
+                            st.success(f"Producto ID {producto.idproductos} eliminado correctamente.")
+                            st.stop()  # Detenemos aquí para que se vea el cambio inmediato
 
         else:
             st.info("No hay productos registrados.")
@@ -168,7 +177,20 @@ def gestionar_productos():
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
         with st.form("add_product_form"):
-            # Usamos keys específicas y confiamos en session_state
+            # Si los campos no están en session_state inicializar
+            if "nuevo_id" not in st.session_state:
+                st.session_state["nuevo_id"] = 1
+            if "nuevo_nombre" not in st.session_state:
+                st.session_state["nuevo_nombre"] = ""
+            if "nueva_unidad" not in st.session_state:
+                st.session_state["nueva_unidad"] = ""
+            if "nuevo_precio" not in st.session_state:
+                st.session_state["nuevo_precio"] = 0.0
+            if "nuevo_stock" not in st.session_state:
+                st.session_state["nuevo_stock"] = 0
+            if "nueva_imagen" not in st.session_state:
+                st.session_state["nueva_imagen"] = ""
+
             nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
             nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
@@ -195,7 +217,7 @@ def gestionar_productos():
                     db.commit()
                     st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
 
-                    # Restablecer valores en session_state:
+                    # Restablecemos el formulario a sus valores por defecto
                     st.session_state["nuevo_id"] = 1
                     st.session_state["nuevo_nombre"] = ""
                     st.session_state["nueva_unidad"] = ""
@@ -203,6 +225,8 @@ def gestionar_productos():
                     st.session_state["nuevo_stock"] = 0
                     st.session_state["nueva_imagen"] = ""
 
+                    # Detener la ejecución aquí para que el cambio se refleje
+                    st.stop()
                 else:
                     st.error("Por favor, completa todos los campos obligatorios.")
     
