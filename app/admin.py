@@ -26,14 +26,39 @@ def mostrar_pedidos():
     
     # Ajustar el estilo si es necesario (Opcional)
     st.markdown("""
-        <style>
-        /* Ajusta el color de texto y otros estilos según tu preferencia */
-        .css-1cypcdb p, .css-1cypcdb table, .css-1cypcdb label {
-            color: black !important;
-        }
-        .stTable { border: 1px solid #ccc; }
-        </style>
-        """, unsafe_allow_html=True)
+    <style>
+    /* Aplica estilos a la tabla */
+    table {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Estilos para el encabezado de la tabla */
+    thead tr th {
+        background-color: #f0f0f0 !important;
+        color: #000000 !important;
+    }
+    
+    /* Estilos para las celdas del cuerpo de la tabla */
+    tbody tr td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Si hay alguna clase específica que causa conflicto, prueba esto: */
+    /* Cambia .css-1cypcdb por la clase que veas en tu HTML si difiere */
+    .css-1cypcdb th, .css-1cypcdb td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    /* Ajusta el color del texto en otras áreas, como selectboxes o encabezados si es necesario */
+    .css-1cypcdb p, .css-1cypcdb label {
+        color: #000 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     db = SessionLocal()
     try:
