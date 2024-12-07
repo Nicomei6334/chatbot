@@ -151,7 +151,7 @@ def sidebar_menu():
         menu_title = "Administrador"
     elif st.session_state.logged_in:
         menu_key = "menu_user"
-        options = ["Chatbot", "Historial Mensajes", "Mis Pedidos", "Cerrar Sesión"]
+        options = ["Chatbot", "Historial Mensajes", "Mis Pedidos","Danos tu feedback", "Cerrar Sesión"]
         icons = ["chat", "clock-history", "list-task", "box-arrow-right"]
         menu_title = "Usuario"
     else:
@@ -768,6 +768,8 @@ def main():
             st.session_state.page = 'chatbot'
         elif selected == "Mis Pedidos":
             st.session_state.page = 'mis_pedidos'
+        elif selected == "Danos tu feedback":
+            st.session_state.page = 'feedback'
         elif selected == "Cerrar Sesión":
             st.session_state.logged_in = False
             st.session_state.user_id = None
@@ -798,12 +800,21 @@ def main():
             chatbot_page()
         else:
             st.warning("Por favor, inicia sesión para acceder al chatbot.")
+            
     elif st.session_state.page == 'mis_pedidos':
         if st.session_state.logged_in and not st.session_state.admin_authenticated:
             contenido = ver_historial_pedidos()
             st.markdown(contenido, unsafe_allow_html=True)
         else:
             st.warning("Por favor, inicia sesión para ver tus pedidos.")
+            
+    elif st.session_state.page= 'feedback':
+        if st.session_state.logged_in and not st.session_state.admin_authenticated:
+            contenido = feedback()
+            st.markdown(contenido, unsafe_allow_html=True)
+        else:
+            st.warning("Por favor, inicia sesión poder ingresar tu feedback.")
+        
     elif st.session_state.page == 'admin_ver_pedidos':
         if st.session_state.admin_authenticated:
             mostrar_pedidos()
@@ -814,7 +825,7 @@ def main():
             mostrar_estadisticas()
         else:
             st.warning("Acceso denegado.")
-    elif st.session_state.page == 'gestionar_productos':
+    elif st.session_state.page == 'gestionar_productos':  
         if st.session_state.admin_authenticated:
             gestionar_productos()
         else:
@@ -823,6 +834,7 @@ def main():
         admin_page()
     else:
         st.warning("Página no encontrada.")
+        
 def historial_mensajes_page():
     st.header("Historial de Mensajes")
     
