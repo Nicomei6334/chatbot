@@ -231,7 +231,7 @@ def gestionar_productos():
     st.subheader("Gestionar Productos")
 
     try:
-        lista_productos = db.query(Producto).all()
+        lista_productos = db.query(Producto).order_by(Producto.idproductos).all()
 
         if lista_productos:
             # Crear un diccionario para mapear la opción seleccionada con el producto
