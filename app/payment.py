@@ -2,7 +2,7 @@
 import mercadopago
 
 from database import SessionLocal, Order
-from dotenv import load_dotenv
+
 import streamlit as st
 import logging
 import traceback
@@ -58,8 +58,16 @@ def crear_preferencia(order_id, total):
             st.error(preference)
             return None
         else:
-            # Preferencia creada exitosamente
+            # Preferencia creada exitosamente, guardar la URL de preferencia en la base de datos
+            db = SessionLocal()
+            order = db.query(Order).filter(Order.idorders == order_id).first()
+            if order:
+                order.preference_url = preference["init_point"]
+                db.commit()
+                logger.info(f"Preferencia URL guardada para el pedido ID {order_id}.")
+            db.close()
             return preference["init_point"]
     except Exception as e:
         st.error(f"Ocurrió un error inesperado: {e}")
+        logger.error(f"Error al crear preferencia: {e}")
         return None
