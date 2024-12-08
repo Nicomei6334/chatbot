@@ -304,7 +304,8 @@ def admin_ver_feedback():
         
 def mostrar_estadisticas():
     """
-    Muestra estadísticas clave para que el dueño pueda analizar su negocio.
+    Muestra estadísticas clave para que el dueño pueda analizar su negocio,
+    incluyendo top 3 productos más vendidos y top 3 pedidos con mayor valor total.
     """
     db = SessionLocal()
     try:
@@ -316,13 +317,23 @@ def mostrar_estadisticas():
         if total_ingresos is None:
             total_ingresos = 0
 
-        # Producto más vendido
+        # Producto más vendido (anterior)
         producto_mas_vendido = (
             db.query(Producto.nombre, func.sum(OrderItem.quantity).label("total_vendido"))
             .join(OrderItem, Producto.idproductos == OrderItem.product_id)
             .group_by(Producto.nombre)
             .order_by(func.sum(OrderItem.quantity).desc())
             .first()
+        )
+
+        # Top 3 productos más vendidos
+        top_3_productos = (
+            db.query(Producto.nombre, func.sum(OrderItem.quantity).label("total_vendido"))
+            .join(OrderItem, Producto.idproductos == OrderItem.product_id)
+            .group_by(Producto.nombre)
+            .order_by(func.sum(OrderItem.quantity).desc())
+            .limit(3)
+            .all()
         )
 
         # Total de productos vendidos
@@ -339,27 +350,63 @@ def mostrar_estadisticas():
             .first()
         )
 
-        # Si necesitas calcular el total de ventas sumando cantidad * precio unitario de cada OrderItem:
+        # Total de ventas desde items
         total_ventas = db.query(func.sum(OrderItem.quantity * OrderItem.unit_price)).scalar()
         if total_ventas is None:
             total_ventas = 0
 
-        # Mostrar estadísticas en la página
+        # Top 3 pedidos con mayor valor total
+        top_3_pedidos = (
+            db.query(Order.idorders, Order.total)
+            .order_by(Order.total.desc())
+            .limit(3)
+            .all()
+        )
+
         st.subheader("📊 Estadísticas del Negocio")
         st.metric("Total de Pedidos", total_pedidos)
-        st.metric("Total de Ingresos", f"${total_ingresos:,.0f} CLP")
+        st.metric("Total de Ingresos (desde orders.total)", f"${total_ingresos:,.0f} CLP")
         st.metric("Cantidad Total de Productos Vendidos", total_productos_vendidos)
         st.metric("Total de Ventas (calculado desde items)", f"${total_ventas:,.0f} CLP")
 
+        # Producto Más Vendido (anterior)
         if producto_mas_vendido:
             st.metric("Producto Más Vendido", f"{producto_mas_vendido[0]} ({producto_mas_vendido[1]} unidades)")
         else:
             st.metric("Producto Más Vendido", "N/A")
 
+        # Usuario con Más Pedidos
         if usuario_mas_pedidos:
             st.metric("Usuario con Más Pedidos", f"{usuario_mas_pedidos[0]} ({usuario_mas_pedidos[1]} pedidos)")
         else:
             st.metric("Usuario con Más Pedidos", "N/A")
+
+        # Mostrar Top 3 Productos Más Vendidos
+        st.subheader("Top 3 Productos Más Vendidos")
+        if top_3_productos:
+            for i in range(3):
+                if i < len(top_3_productos):
+                    nombre, vendidos = top_3_productos[i]
+                    st.write(f"{i+1}. {nombre} - {vendidos} unidades")
+                else:
+                    st.write(f"{i+1}. N/A")
+        else:
+            # Si no hay productos
+            for i in range(3):
+                st.write(f"{i+1}. N/A")
+
+        # Mostrar Top 3 Pedidos (por valor total)
+        st.subheader("Top 3 Pedidos con Mayor Valor Total")
+        if top_3_pedidos:
+            for i in range(3):
+                if i < len(top_3_pedidos):
+                    pid, ptotal = top_3_pedidos[i]
+                    st.write(f"{i+1}. Pedido #{pid} - Total: ${ptotal:,.0f} CLP")
+                else:
+                    st.write(f"{i+1}. N/A")
+        else:
+            for i in range(3):
+                st.write(f"{i+1}. N/A")
 
     except Exception as e:
         st.error(f"Error al obtener las estadísticas: {e}")
