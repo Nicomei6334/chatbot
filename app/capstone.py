@@ -792,6 +792,8 @@ def main():
             st.session_state.page = 'admin_estadisticas'
         elif selected== "Gestionar Productos":
             st.session_state.page= 'gestionar_productos'
+        elif selected == "Ver feedbacks":
+            st.session_state.page= 'adm_feedbacks'
         elif selected == "Cerrar Sesión Admin":
             st.session_state.admin_authenticated = False
             st.session_state.page = 'login'
@@ -870,7 +872,7 @@ def main():
         else:
             st.warning("Acceso denegado.")
         
-   elif st.session_state.page == 'admin_ver_feedback':
+   elif st.session_state.page == 'adm_feedbacks':
         if st.session_state.admin_authenticated:
             admin_ver_feedback()
         else:
