@@ -12,8 +12,8 @@ import traceback
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-MP_ACCESS_TOKEN = st.secrets[mercadopago][TK]
-WEBHOOK_URL = st.secrets[WEEBHOOK][WH]
+MP_ACCESS_TOKEN = st.secrets["mercadopago"]["TK"]
+WEBHOOK_URL = st.secrets["WEEBHOOK"]["WH"]
 
 # Inicializar el cliente de MercadoPago
 
