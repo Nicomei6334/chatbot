@@ -20,7 +20,7 @@ import time
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 import pandas as pd
-from admin import authenticate_admin, mostrar_pedidos, mostrar_estadisticas, gestionar_productos
+from admin import authenticate_admin, mostrar_pedidos, mostrar_estadisticas, gestionar_productos, admin_ver_feedback
 from payment import crear_preferencia
 # Cargar las variables de entorno
 
@@ -864,10 +864,22 @@ def main():
             gestionar_productos()
         else:
             st.warning("Acceso denegado.")
+            
     elif st.session_state.page == 'admin':
-        admin_page()
+        if st.session_state.admin_authenticated:
+            admin_page()
+        else:
+            st.warning("Acceso denegado.")
+        
+   elif st.session_state.page == 'admin_ver_feedback':
+        if st.session_state.admin_authenticated:
+            admin_ver_feedback()
+        else:
+            st.warning("Acceso denegado.")
     else:
         st.warning("Página no encontrada.")
+        
+
         
 def historial_mensajes_page():
     st.header("Historial de Mensajes")
