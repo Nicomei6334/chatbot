@@ -724,10 +724,9 @@ def mostrar_feedback():
     rating_amigable_resp = st.radio("¿El sistema lo considera amigable a su uso?", opciones_satisfaccion)
     rating_rapidez_resp = st.radio("¿Considera el sistema rapido?", opciones_satisfaccion)
     st.subheader("Sección 2: ¿Utilizarías nuestro servicio al cliente en el futuro?")
-    future_use_resp = st.radio("", ["Sí", "No", "Tal vez"])
+    future_use_resp = st.radio("Seleccione una de las 3 opciones", ["Sí", "No", "Tal vez"])
     st.subheader("Sección 3: ¿Cómo podemos mejorar nuestro servicio?")
-    st.subheader("Escriba su opinión")
-    comment_resp = st.text_area("")
+    comment_resp = st.text_area("Escribe tu opinión")
         
     if st.button("Enviar"):
             db = SessionLocal()
