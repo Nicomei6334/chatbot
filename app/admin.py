@@ -174,50 +174,61 @@ def gestionar_productos():
         lista_productos = db.query(Producto).all()
 
         if lista_productos:
-            st.write("Productos Actuales:")
-            for producto in lista_productos:
-                with st.expander(f"Producto ID: {producto.idproductos} - {producto.nombre}"):
-                    nuevo_nombre = st.text_input("Nombre", value=producto.nombre, key=f"nombre_{producto.idproductos}")
-                    nueva_unidad = st.text_input("Unidad", value=producto.unidad, key=f"unidad_{producto.idproductos}")
-                    nuevo_precio = st.number_input("Precio", value=producto.precio, step=1.0, key=f"precio_{producto.idproductos}")
-                    nuevo_stock = st.number_input("Stock", value=producto.stock, step=1, key=f"stock_{producto.idproductos}")
-                    nueva_imagen = st.text_input("URL de la Imagen", value=producto.imagen, key=f"imagen_{producto.idproductos}")
+            # Crear un diccionario para mapear la opción seleccionada con el producto
+            opciones = ["Ninguno"] + [f"ID: {p.idproductos} - {p.nombre}" for p in lista_productos]
+            producto_map = {f"ID: {p.idproductos} - {p.nombre}": p for p in lista_productos}
+
+            seleccion = st.selectbox("Selecciona un producto para editar:", opciones)
+            
+            if seleccion != "Ninguno":
+                producto = producto_map[seleccion]
+                # Mostrar formulario para editar producto seleccionado
+                with st.form(f"edit_form_{producto.idproductos}", clear_on_submit=False):
+                    nuevo_nombre = st.text_input("Nombre", value=producto.nombre)
+                    nueva_unidad = st.text_input("Unidad", value=producto.unidad)
+                    nuevo_precio = st.number_input("Precio", value=producto.precio, step=1.0)
+                    nuevo_stock = st.number_input("Stock", value=producto.stock, step=1)
+                    nueva_imagen = st.text_input("URL de la Imagen", value=producto.imagen if producto.imagen else "")
 
                     col1, col2 = st.columns(2)
                     with col1:
-                        if st.button(f"Guardar Cambios para ID {producto.idproductos}", key=f"guardar_{producto.idproductos}"):
-                            # Validar si el nombre ya existe en otro producto distinto del actual
-                            producto_mismo_nombre = db.query(Producto).filter(
-                                Producto.nombre == nuevo_nombre, 
-                                Producto.idproductos != producto.idproductos
-                            ).first()
-                            if producto_mismo_nombre:
-                                st.error("Ya existe otro producto con el mismo nombre. Por favor, elige otro nombre.")
-                            else:
-                                producto.nombre = nuevo_nombre
-                                producto.unidad = nueva_unidad
-                                producto.precio = nuevo_precio
-                                producto.stock = nuevo_stock
-                                producto.imagen = nueva_imagen
-                                db.commit()
-                                st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
-                                st.session_state["last_submission_success"] = True
-                                st.stop()
-
+                        guardar_cambios = st.form_submit_button("Guardar Cambios")
                     with col2:
-                        if st.button(f"Eliminar Producto ID {producto.idproductos}", key=f"eliminar_{producto.idproductos}"):
-                            db.delete(producto)
+                        eliminar = st.form_submit_button("Eliminar Producto")
+
+                    if guardar_cambios:
+                        # Validar si el nombre ya existe en otro producto distinto del actual
+                        producto_mismo_nombre = db.query(Producto).filter(
+                            Producto.nombre == nuevo_nombre,
+                            Producto.idproductos != producto.idproductos
+                        ).first()
+                        if producto_mismo_nombre:
+                            st.error("Ya existe otro producto con el mismo nombre. Por favor, elige otro nombre.")
+                        else:
+                            producto.nombre = nuevo_nombre
+                            producto.unidad = nueva_unidad
+                            producto.precio = nuevo_precio
+                            producto.stock = nuevo_stock
+                            producto.imagen = nueva_imagen
                             db.commit()
-                            st.success(f"Producto ID {producto.idproductos} eliminado correctamente.")
+                            st.success(f"Producto ID {producto.idproductos} actualizado correctamente.")
                             st.session_state["last_submission_success"] = True
                             st.stop()
+
+                    if eliminar:
+                        db.delete(producto)
+                        db.commit()
+                        st.success(f"Producto ID {producto.idproductos} eliminado correctamente.")
+                        st.session_state["last_submission_success"] = True
+                        st.stop()
+
         else:
             st.info("No hay productos registrados.")
 
         st.write("---")
         st.subheader("Añadir Nuevo Producto")
 
-        with st.form("add_product_form"):
+        with st.form("add_product_form", clear_on_submit=False):
             nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
             nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
@@ -258,7 +269,7 @@ def gestionar_productos():
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
-
+        
 opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
 satisfaccion_map = {op: i+1 for i, op in enumerate(opciones_satisfaccion)}
 
