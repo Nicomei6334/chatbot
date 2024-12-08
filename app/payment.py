@@ -32,13 +32,15 @@ def crear_preferencia(order_id, total):
     Returns:
         str: URL de inicio de pago de MercadoPago o None si falla.
     """    
+     # Convertir el total a entero para cumplir con los requisitos de MercadoPago
+    total_int = int(total)
     preference_data = {
         "items": [
             {
                 "title": f"Pedido #{order_id}",
                 "quantity": 1,
                 "currency_id": "CLP",  # Asegúrate de usar la moneda correcta
-                "unit_price": total
+                "unit_price": total_int
             }
         ],
         "external_reference": str(order_id),  # Asociar la preferencia con la orden
