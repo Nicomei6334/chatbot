@@ -412,3 +412,4 @@ def mostrar_estadisticas():
         st.error(f"Error al obtener las estadísticas: {e}")
     finally:
         db.close()
+
