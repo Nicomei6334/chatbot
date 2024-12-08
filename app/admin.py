@@ -145,38 +145,31 @@ BUCKET_NAME = "productos-imagenes"
 def get_supabase_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
     
-
 def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
-    """
-    Sube una imagen a un bucket de Supabase y retorna su URL pública.
-    """
-    # Generar un nombre único para la imagen
     nombre_unico = f"{nombre_producto}_{uuid.uuid4().hex}.png"
-    
-    # Crear un archivo temporal para guardar la imagen
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
             ruta_temporal = tmp_file.name
             imagen.save(ruta_temporal, format="PNG")
         
-        # Subir la imagen al bucket
-        supabase: Client = get_supabase_client()
-        try:
-            supabase.storage.from_(BUCKET_NAME).upload(
-                path=nombre_unico,  # Ruta dentro del bucket
-                file=ruta_temporal  # Ruta del archivo temporal
-            )
+        supabase = get_supabase_client()
+        resultado = supabase.storage.from_(BUCKET_NAME).upload(
+            path=nombre_unico,  # Ruta dentro del bucket
+            file=ruta_temporal  # Ruta del archivo temporal
+        )
 
-            # Generar URL pública de la imagen
+        if resultado:
             url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico)
             return url
-        finally:
-            # Eliminar el archivo temporal después de subirlo
-            if os.path.exists(ruta_temporal):
-                os.remove(ruta_temporal)
+        else:
+            st.error("No se pudo subir la imagen. Verifica las políticas de seguridad del bucket.")
+            return ""
     except Exception as e:
         st.error(f"Error al subir la imagen: {e}")
         return ""
+    finally:
+        if os.path.exists(ruta_temporal):
+            os.remove(ruta_temporal)
         
 def validar_imagen(file) -> Image.Image:
     try:
