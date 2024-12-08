@@ -253,8 +253,7 @@ def gestionar_productos():
                     st.markdown("**Imagen del Producto**")
                     # Mostrar la imagen actual si existe
                     if producto.imagen:
-                        st.image(producto.imagen, caption="Imagen actual", use_column_width=True)
-                st.image(producto.imagen, caption="Imagen del producto actual", use_column_width=True)
+                        st.image(producto.imagen, caption="Imagen del producto actual", use_column_width=True))
                     archivo_imagen = st.file_uploader(
                         "Sube una imagen (PNG o JPG, máximo 100x100 píxeles, 200KB)",
                         type=["png", "jpg", "jpeg"],
