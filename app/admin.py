@@ -4,6 +4,7 @@ import streamlit as st
 from database import SessionLocal, Order, User, Producto, OrderItem, Feedback 
 import pandas as pd
 from sqlalchemy import func
+import tempfile
 from sqlalchemy.orm import joinedload
 from supabase import create_client, Client
 from PIL import Image
@@ -144,6 +145,7 @@ BUCKET_NAME = "productos-imagenes"
 def get_supabase_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
     
+
 def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
     """
     Sube una imagen a un bucket de Supabase y retorna su URL pública.
@@ -151,24 +153,27 @@ def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
     # Generar un nombre único para la imagen
     nombre_unico = f"{nombre_producto}_{uuid.uuid4().hex}.png"
     
-    # Convertir la imagen a bytes
-    buffer = io.BytesIO()
-    imagen.save(buffer, format="PNG")
-    buffer.seek(0)
-    
-    # Subir la imagen al bucket
-    supabase: Client = get_supabase_client()
+    # Crear un archivo temporal para guardar la imagen
     try:
-        # Subir la imagen utilizando la configuración correcta del SDK
-        supabase.storage.from_(BUCKET_NAME).upload(
-            path=nombre_unico,  # Ruta dentro del bucket
-            file=buffer,        # Contenido de la imagen
-            file_options={"cacheControl": "3600"}  # Opcional: configuración de cache
-        )
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+            ruta_temporal = tmp_file.name
+            imagen.save(ruta_temporal, format="PNG")
+        
+        # Subir la imagen al bucket
+        supabase: Client = get_supabase_client()
+        try:
+            supabase.storage.from_(BUCKET_NAME).upload(
+                path=nombre_unico,  # Ruta dentro del bucket
+                file=ruta_temporal  # Ruta del archivo temporal
+            )
 
-        # Generar URL pública de la imagen
-        url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico)
-        return url
+            # Generar URL pública de la imagen
+            url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico)
+            return url
+        finally:
+            # Eliminar el archivo temporal después de subirlo
+            if os.path.exists(ruta_temporal):
+                os.remove(ruta_temporal)
     except Exception as e:
         st.error(f"Error al subir la imagen: {e}")
         return ""
