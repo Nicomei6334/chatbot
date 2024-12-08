@@ -396,6 +396,7 @@ def finalizar_pedido(productos):
         st.warning("No hay productos en el carrito para finalizar el pedido.")
 
 def mostrar_menu_interactivo(productos):
+    productos = sorted(productos, key=lambda p: p.idproductos)
     # CSS para permitir scroll vertical dentro del expander (opcional)
     st.markdown("""
         <style>
@@ -428,7 +429,7 @@ def mostrar_menu_interactivo(productos):
                 unidad = producto.unidad
                 stock = producto.stock
                 # URL de imagen por defecto si no hay imagen
-                imagen = producto.imagen if producto.imagen else 'https://via.placeholder.com/150'
+                imagen = producto.imagen if producto.imagen else 'https://via.placeholder.com/100'
 
                 key_cantidad = f"cantidad_{nombre}"
 
