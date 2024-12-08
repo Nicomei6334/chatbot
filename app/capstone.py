@@ -396,81 +396,90 @@ def finalizar_pedido(productos):
         st.warning("No hay productos en el carrito para finalizar el pedido.")
 
 def mostrar_menu_interactivo(productos):
+    # CSS para permitir scroll vertical dentro del expander (opcional)
+    st.markdown("""
+        <style>
+        .menu-expander > div:nth-child(1) {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     with st.expander("🛒 Menú de Productos", expanded=True):
+        # Añadir una clase al contenedor del expander para el CSS
+        st.markdown('<div class="menu-expander">', unsafe_allow_html=True)
+
         # Campo de búsqueda
         search_query = st.text_input("Buscar Producto", "")
         productos_filtrados = [p for p in productos if search_query.lower() in p.nombre.lower()]
-        
-        # Mostrar productos en un grid de 3 columnas por fila
-        # Calcular cuántas filas se necesitan
-        num_productos = len(productos_filtrados)
-        productos_por_fila = 3
-        filas = (num_productos // productos_por_fila) + (1 if num_productos % productos_por_fila != 0 else 0)
 
-        for fila in range(filas):
-            cols = st.columns(productos_por_fila)
-            for i in range(productos_por_fila):
-                index = fila * productos_por_fila + i
-                if index < num_productos:
-                    producto = productos_filtrados[index]
-                    nombre = producto.nombre
-                    precio = producto.precio
-                    unidad = producto.unidad
-                    stock = producto.stock
-                    # URL de imagen (optimizada previamente por el admin)
-                    imagen = producto.imagen if producto.imagen else "https://via.placeholder.com/150"
-                    
-                    with cols[i]:
-                        # Mostrar la imagen del producto
-                        # Ajustar el ancho a 150px (o el que consideres apropiado)
-                        st.image(imagen, width=150, use_container_width=False)
+        # Definir el número de columnas (ejemplo: 4 columnas por fila)
+        num_columnas = 4
 
-                        # Nombre y unidad
-                        st.markdown(f"**{nombre}** ({unidad})")
-                        # Precio
-                        st.markdown(f"Precio: ${precio:,.0f} CLP")
-                        # Stock
-                        st.markdown(f"Stock: {stock} {unidad}(s)")
-                        
-                        key_cantidad = f"cantidad_{nombre}"
-                        cantidad = st.number_input(
-                            label="Cantidad",
-                            min_value=0,
-                            max_value=stock,
-                            value=st.session_state.get(key_cantidad, 0),
-                            step=1,
-                            key=f"input_{nombre}"
-                        )
-                        st.session_state[key_cantidad] = cantidad
-                        
-                        # Actualizar el carrito
-                        if cantidad > 0:
-                            st.session_state.carrito[nombre] = {
-                                'unidad': unidad,
-                                'precio': precio,
-                                'cantidad': cantidad
-                            }
-                        else:
-                            st.session_state.carrito.pop(nombre, None)
+        # Dividir la lista de productos en filas de num_columnas
+        for i in range(0, len(productos_filtrados), num_columnas):
+            fila_productos = productos_filtrados[i:i+num_columnas]
+            cols = st.columns(num_columnas)
+
+            for col, producto in zip(cols, fila_productos):
+                nombre = producto.nombre
+                precio = producto.precio
+                unidad = producto.unidad
+                stock = producto.stock
+                # URL de imagen por defecto si no hay imagen
+                imagen = producto.imagen if producto.imagen else 'https://via.placeholder.com/150'
+
+                key_cantidad = f"cantidad_{nombre}"
+
+                with col:
+                    # Mostrar imagen con un ancho fijo para evitar tamaños inconsistentes
+                    st.image(imagen, width=150, use_column_width=False)
+                    st.markdown(f"**{nombre}**")
+                    st.markdown(f"Precio: ${precio:,.0f} CLP")
+                    st.markdown(f"Stock: {stock} {unidad}(s)")
+
+                    # Input para la cantidad
+                    cantidad = st.number_input(
+                        label="Cantidad",
+                        min_value=0,
+                        max_value=stock,
+                        value=st.session_state.get(key_cantidad, 0),
+                        step=1,
+                        key=f"input_{nombre}"
+                    )
+                    st.session_state[key_cantidad] = cantidad
+
+                    # Actualizar el carrito
+                    if cantidad > 0:
+                        st.session_state.carrito[nombre] = {
+                            'unidad': unidad,
+                            'precio': precio,
+                            'cantidad': cantidad
+                        }
+                    else:
+                        st.session_state.carrito.pop(nombre, None)
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Calcular subtotal sin IVA, IVA y total con IVA
-    productos_seleccionados = [p for p in productos if st.session_state.get(f"cantidad_{p.nombre}", 0) > 0]
     subtotal = sum(
-        (p.precio / 1.19) * st.session_state.get(f"cantidad_{p.nombre}", 0) 
-        for p in productos_seleccionados
+        (producto.precio / 1.19) * st.session_state.get(f"cantidad_{producto.nombre}", 0)
+        for producto in productos_filtrados
     )
+
     iva_total = subtotal * 0.19
     total_con_iva = subtotal + iva_total
-    
+
     # Guardar el total en el estado de la sesión
     st.session_state['total_pedido'] = total_con_iva
-    
+
     # Mostrar el subtotal, IVA y total
     st.markdown("---")
     st.write(f"**Subtotal** (sin IVA): ${subtotal:,.0f} CLP")
     st.write(f"**IVA (19%)**: ${iva_total:,.0f} CLP")
     st.write(f"**Total**: ${total_con_iva:,.0f} CLP")
-    
+
     # Botón para generar boleta
     if st.button("Mostrar carrito"):
         if st.session_state.carrito:
