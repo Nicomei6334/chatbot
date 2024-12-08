@@ -251,6 +251,10 @@ def gestionar_productos():
 
                     # Subida de imagen
                     st.markdown("**Imagen del Producto**")
+                    # Mostrar la imagen actual si existe
+                    if producto.imagen:
+                        st.image(producto.imagen, caption="Imagen actual", use_column_width=True)
+                st.image(producto.imagen, caption="Imagen del producto actual", use_column_width=True)
                     archivo_imagen = st.file_uploader(
                         "Sube una imagen (PNG o JPG, máximo 100x100 píxeles, 200KB)",
                         type=["png", "jpg", "jpeg"],
@@ -319,11 +323,6 @@ def gestionar_productos():
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
             nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0, key="nuevo_precio")
             nuevo_stock = st.number_input("Stock", min_value=0, step=1, key="nuevo_stock")
-           
-            # Mostrar la imagen actual del producto, si existe
-            if producto.imagen:
-                st.markdown("### Imagen Actual:")
-                st.image(producto.imagen, caption="Imagen del producto actual", use_column_width=True)
             
             # Subida de imagen
             st.markdown("**Imagen del Producto**")
