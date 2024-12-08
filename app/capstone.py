@@ -716,8 +716,7 @@ def chatbot_page():
             st.session_state.mostrar_boton_pago = False
 
 def mostrar_feedback():
-    st.header("Tu opinión es importante para nosotros")
-
+    st.header("Tu opinión es importante para nosotros") 
     opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
     satisfaccion_map = {op: i+1 for i, op in enumerate(opciones_satisfaccion)}
     
@@ -730,24 +729,24 @@ def mostrar_feedback():
 
     st.subheader("Sección 3: ¿Cómo podemos mejorar nuestro servicio?")
     comment_resp = st.text_area("")
-
-if st.button("Enviar"):
-    db = SessionLocal()
-    try:
-        new_feedback = Feedback(
-            rating_amigable=satisfaccion_map[rating_amigable_resp],
-            rating_rapidez=satisfaccion_map[rating_rapidez_resp],
-            future_use=future_use_resp,
-            comment=comment_resp
-        )
-        db.add(new_feedback)
-        db.commit()
-        st.success("¡Gracias por tu retroalimentación!")
-    except Exception as e:
-        db.rollback()
-        st.error(f"Ocurrió un error: {e}")
-    finally:
-        db.close()
+        
+    if st.button("Enviar"):
+            db = SessionLocal()
+            try:
+                new_feedback = Feedback(
+                    rating_amigable=satisfaccion_map[rating_amigable_resp],
+                    rating_rapidez=satisfaccion_map[rating_rapidez_resp],
+                    future_use=future_use_resp,
+                    comment=comment_resp
+                    )
+                db.add(new_feedback)
+                db.commit()
+                st.success("¡Gracias por tu retroalimentación!")
+            except Exception as e:
+                db.rollback()
+                st.error(f"Ocurrió un error: {e}")
+            finally:
+                db.close()
 
 def admin_page():
     st.header("🛡️Panel de Administración🛠️")
@@ -876,7 +875,7 @@ def main():
             admin_ver_feedback()
         else:
             st.warning("Acceso denegado.")
-    else:
+   else:
         st.warning("Página no encontrada.")
         
 
