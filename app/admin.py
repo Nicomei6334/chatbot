@@ -18,7 +18,7 @@ ADMIN_PASSWORD = st.secrets["admin"]["pass"]
 
 SUPABASE_URL = st.secrets["SUPABASE"]["URL"]
 SUPABASE_KEY = st.secrets["SUPABASE"]["KEY"]
-BUCKET_NAME = "productos-imagenes"
+
 def authenticate_admin(username, password):
     """
     Verifica si las credenciales de administrador son correctas.
@@ -139,7 +139,8 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
-
+        
+BUCKET_NAME = "productos-imagenes"
 def get_supabase_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
     
@@ -158,20 +159,20 @@ def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
     # Subir la imagen al bucket
     supabase: Client = get_supabase_client()
     try:
-        # Subir imagen sin usar content_type
-        resultado = supabase.storage.from_(BUCKET_NAME).upload(nombre_unico, buffer)
+        # Subir la imagen utilizando la configuración correcta del SDK
+        supabase.storage.from_(BUCKET_NAME).upload(
+            path=nombre_unico,  # Ruta dentro del bucket
+            file=buffer,        # Contenido de la imagen
+            file_options={"cacheControl": "3600"}  # Opcional: configuración de cache
+        )
 
-        # Comprobar si la subida fue exitosa
-        if resultado:
-            # Generar URL pública
-            url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico)
-            return url
-        else:
-            st.error("No se pudo subir la imagen.")
-            return ""
+        # Generar URL pública de la imagen
+        url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico)
+        return url
     except Exception as e:
         st.error(f"Error al subir la imagen: {e}")
         return ""
+        
 def validar_imagen(file) -> Image.Image:
     try:
         imagen = Image.open(file)
