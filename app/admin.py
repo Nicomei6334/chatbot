@@ -3,7 +3,7 @@
 import streamlit as st
 from database import SessionLocal, Order, User, Producto, OrderItem, Feedback 
 import pandas as pd
-from sqlalchemy import func
+from sqlalchemy import func, cast, Integer
 import tempfile
 from sqlalchemy.orm import joinedload
 from supabase import create_client, Client
@@ -231,7 +231,7 @@ def gestionar_productos():
     st.subheader("Gestionar Productos")
 
     try:
-        lista_productos = db.query(Producto).order_by(Producto.idproductos).all()
+        lista_productos = db.query(Producto).order_by(cast(Producto.idproductos, Integer)).all()
 
         if lista_productos:
             # Crear un diccionario para mapear la opción seleccionada con el producto
