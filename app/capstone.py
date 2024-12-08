@@ -397,67 +397,68 @@ def finalizar_pedido(productos):
 
 def mostrar_menu_interactivo(productos):
     with st.expander("🛒 Menú de Productos", expanded=True):
-        # Agregar un campo de búsqueda para filtrar productos
+        # Campo de búsqueda
         search_query = st.text_input("Buscar Producto", "")
         productos_filtrados = [p for p in productos if search_query.lower() in p.nombre.lower()]
         
-        # Crear un encabezado para la tabla de productos
-        header_cols = st.columns([2, 1, 2])  # Reducir columnas: Producto, Precio, Cantidad
-        with header_cols[0]:
-            st.markdown("**Producto**")
-        with header_cols[1]:
-            st.markdown("**Precio (CLP)**")
-        with header_cols[2]:
-            st.markdown("**Cantidad**")
-        
-        # Crear una tabla para mostrar los productos con la nueva estructura
-        for producto in productos_filtrados:
-            nombre = producto.nombre  # Cambiado de producto['nombre'] a producto.nombre
-            precio = producto.precio  # Cambiado de producto['precio'] a producto.precio
-            unidad = producto.unidad    # Cambiado de producto['unidad'] a producto.unidad
-            stock = producto.stock      # Cambiado de producto['stock'] a producto.stock
-            imagen = producto.imagen if producto.imagen else 'https://via.placeholder.com/100'
-            key_cantidad = f"cantidad_{nombre}"
+        # Mostrar productos en un grid de 3 columnas por fila
+        # Calcular cuántas filas se necesitan
+        num_productos = len(productos_filtrados)
+        productos_por_fila = 3
+        filas = (num_productos // productos_por_fila) + (1 if num_productos % productos_por_fila != 0 else 0)
 
-            # Crear una fila con 3 columnas: Producto, Precio, Input de Cantidad
-            col1, col2, col3 = st.columns([2, 1, 2])
-            
-            with col1:
-                st.markdown(f"### {nombre} ({unidad})")
-                st.markdown(f"Precio ${precio:,.0f} CLP")
-                st.markdown(f"**Stock:** {stock} {unidad}(s)")
-            
-            with col2:
-                st.image(imagen, width=80, use_container_width=True, clamp=True, channels="RGB", output_format="auto")
-            
-            with col3:
-                # Input numérico para la cantidad
-                cantidad = st.number_input(
-                    label="",
-                    min_value=0,
-                    max_value=stock,
-                    value=st.session_state.get(key_cantidad, 0),
-                    step=1,
-                    key=f"input_{nombre}"
-                )
-                st.session_state[key_cantidad] = cantidad  # Actualizar el estado
-                # Actualizar el carrito automáticamente
-                if cantidad > 0:
-                    st.session_state.carrito[nombre] = {
-                        'unidad': unidad,
-                        'precio': precio,
-                        'cantidad': cantidad
-                    }
-                else:
-                    st.session_state.carrito.pop(nombre, None)
-    
-    
+        for fila in range(filas):
+            cols = st.columns(productos_por_fila)
+            for i in range(productos_por_fila):
+                index = fila * productos_por_fila + i
+                if index < num_productos:
+                    producto = productos_filtrados[index]
+                    nombre = producto.nombre
+                    precio = producto.precio
+                    unidad = producto.unidad
+                    stock = producto.stock
+                    # URL de imagen (optimizada previamente por el admin)
+                    imagen = producto.imagen if producto.imagen else "https://via.placeholder.com/150"
+                    
+                    with cols[i]:
+                        # Mostrar la imagen del producto
+                        # Ajustar el ancho a 150px (o el que consideres apropiado)
+                        st.image(imagen, width=150, use_container_width=False)
+
+                        # Nombre y unidad
+                        st.markdown(f"**{nombre}** ({unidad})")
+                        # Precio
+                        st.markdown(f"Precio: ${precio:,.0f} CLP")
+                        # Stock
+                        st.markdown(f"Stock: {stock} {unidad}(s)")
+                        
+                        key_cantidad = f"cantidad_{nombre}"
+                        cantidad = st.number_input(
+                            label="Cantidad",
+                            min_value=0,
+                            max_value=stock,
+                            value=st.session_state.get(key_cantidad, 0),
+                            step=1,
+                            key=f"input_{nombre}"
+                        )
+                        st.session_state[key_cantidad] = cantidad
+                        
+                        # Actualizar el carrito
+                        if cantidad > 0:
+                            st.session_state.carrito[nombre] = {
+                                'unidad': unidad,
+                                'precio': precio,
+                                'cantidad': cantidad
+                            }
+                        else:
+                            st.session_state.carrito.pop(nombre, None)
+
     # Calcular subtotal sin IVA, IVA y total con IVA
+    productos_seleccionados = [p for p in productos if st.session_state.get(f"cantidad_{p.nombre}", 0) > 0]
     subtotal = sum(
-        (producto.precio / 1.19) * st.session_state.get(f"cantidad_{producto.nombre}", 0) 
-        for producto in productos_filtrados
+        (p.precio / 1.19) * st.session_state.get(f"cantidad_{p.nombre}", 0) 
+        for p in productos_seleccionados
     )
-    
     iva_total = subtotal * 0.19
     total_con_iva = subtotal + iva_total
     
@@ -476,6 +477,7 @@ def mostrar_menu_interactivo(productos):
             finalizar_pedido(productos)
         else:
             st.warning("No tienes productos en el carrito para generar una boleta.")
+
 
 
 # Función para autenticar administrador y mostrar interfaz admin
