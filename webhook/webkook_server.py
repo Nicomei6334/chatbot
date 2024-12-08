@@ -1,57 +1,81 @@
-# webhook/webhook_server.py
-from fastapi import FastAPI, Request
+# webhook.py
+from fastapi import FastAPI, Request, HTTPException
+from pydantic import BaseModel
 import os
-import json
-from app.database import SessionLocal, Order, Producto
+import mercadopago
+from app.database import SessionLocal, Order
 from dotenv import load_dotenv
-from sqlalchemy.exc import SQLAlchemyError
-import uvicorn
 import logging
 
-# Obtener la ruta absoluta al directorio raíz del proyecto
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(BASE_DIR, '.env'))
-
-DATABASE_URL = os.getenv("DATABASE_URL")
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+
+MP_ACCESS_TOKEN = st.secrets["mercadopago"]["TK"]
+SUPABASE_URL = st.secrets["SUPABASE"]["URL"]
+SUPABASE_KEY = st.secrets["SUPABASE"]["KEY"]
+BUCKET_NAME = "productos-imagenes"  # Asegúrate de que coincida con tu configuración
+
+# Inicializar el cliente de MercadoPago
+sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
+
 app = FastAPI()
 
+
 @app.post("/webhook")
-async def webhook(request: Request):
-    payload = await request.json()
+async def mercadopago_webhook(request: Request):
+    try:
+        data = await request.json()
+        logger.info(f"Webhook recibido: {data}")
 
-    # Verificar que el evento sea de tipo 'payment'
-    if payload.get("type") == "payment":
-        payment = payload.get("data")
-        payment_id = str(payment.get("id"))
-        status = payment.get("status")
+        if data.get("type") == "payment":
+            payment_id = data["data"]["id"]
+            logger.info(f"Procesando pago con ID: {payment_id}")
 
-        db = SessionLocal()
-        try:
-            # Buscar la orden por payment_id
-            order = db.query(Order).filter(Order.payment_id == payment_id).first()
-            if order:
+            # Consultar el pago a MercadoPago
+            payment_info = sdk.payment().get(payment_id)
+            payment = payment_info["response"]
+
+            # Obtener el estado del pago
+            status = payment.get("status")
+            external_reference = payment.get("external_reference")  # order_id
+
+            if not external_reference:
+                logger.error("No se encontró 'external_reference' en el pago.")
+                raise HTTPException(status_code=400, detail="Missing external_reference")
+
+            order_id = int(external_reference)
+            logger.info(f"Actualizando estado del pedido ID: {order_id} a {status}")
+
+            # Actualizar el estado en la base de datos
+            db = SessionLocal()
+            try:
+                order = db.query(Order).filter(Order.idorders == order_id).first()
+                if not order:
+                    logger.error(f"Orden ID {order_id} no encontrada.")
+                    raise HTTPException(status_code=404, detail="Order not found")
+
                 if status == "approved":
                     order.status = "aprobado"
-                elif status == "in_process":
+                elif status == "pending":
                     order.status = "pendiente"
-                elif status in ["rejected", "cancelled"]:
+                elif status == "rejected":
                     order.status = "rechazado"
+                else:
+                    order.status = "desconocido"
+
                 db.commit()
-                print(f"Orden {order.idorders} actualizada a {order.status}")
-            else:
-                print(f"No se encontró la orden con payment_id: {payment_id}")
-        except SQLAlchemyError as e:
-            db.rollback()
-            print(f"Error al actualizar la orden: {e}")
-        finally:
-            db.close()
+                logger.info(f"Orden ID {order_id} actualizada a {order.status}")
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Error al actualizar la orden: {e}")
+                raise HTTPException(status_code=500, detail="Error updating order")
+            finally:
+                db.close()
 
-    return {"status": "received"}
-
-if __name__ == "__main__":
-    # Ejecutar el servidor de webhook
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Error en webhook: {e}")
+        raise HTTPException(status_code=400, detail="Invalid request")
