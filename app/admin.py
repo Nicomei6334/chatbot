@@ -176,7 +176,7 @@ def gestionar_productos():
         if lista_productos:
             # Crear un diccionario para mapear la opción seleccionada con el producto
             opciones = ["Ninguno"] + [f"SKU: {p.idproductos} - {p.nombre}" for p in lista_productos]
-            producto_map = {f"ID: {p.idproductos} - {p.nombre}": p for p in lista_productos}
+            producto_map = {f"SKU: {p.idproductos} - {p.nombre}": p for p in lista_productos}
 
             seleccion = st.selectbox("Selecciona un producto para editar:", opciones)
             
