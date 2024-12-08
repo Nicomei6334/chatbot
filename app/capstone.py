@@ -715,6 +715,40 @@ def chatbot_page():
             st.session_state.boleta_generada = False
             st.session_state.mostrar_boton_pago = False
 
+def mostrar_feedback():
+    st.header("Tu opinión es importante para nosotros")
+
+    opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
+    satisfaccion_map = {op: i+1 for i, op in enumerate(opciones_satisfaccion)}
+    
+    st.subheader("Sección 1: Satisfacción general del servicio")
+    rating_amigable_resp = st.radio("Amigable", opciones_satisfaccion)
+    rating_rapidez_resp = st.radio("Rapidez", opciones_satisfaccion)
+
+    st.subheader("Sección 2: ¿Utilizarías nuestro servicio al cliente en el futuro?")
+    future_use_resp = st.radio("", ["Sí", "No", "Tal vez"])
+
+    st.subheader("Sección 3: ¿Cómo podemos mejorar nuestro servicio?")
+    comment_resp = st.text_area("")
+
+    if st.button("Enviar"):
+        db = SessionLocal()
+        try:
+            new_feedback = Feedback(
+                rating_amigable=satisfaccion_map[rating_amigable_resp],
+                rating_rapidez=satisfaccion_map[rating_rapidez_resp],
+                future_use=future_use_resp,
+                comment=comment_resp
+            )
+            db.add(new_feedback)
+            db.commit()
+            st.success("¡Gracias por tu retroalimentación!")
+        except Exception as e:
+            db.rollback()
+            st.error(f"Ocurrió un error: {e}")
+        finally:
+            db.close()
+
 def admin_page():
     st.header("🛡️Panel de Administración🛠️")
     selected = option_menu(
@@ -810,7 +844,7 @@ def main():
             
     elif st.session_state.page= 'feedback':
         if st.session_state.logged_in and not st.session_state.admin_authenticated:
-            contenido = feedback()
+            contenido = mostrar_feedback()
             st.markdown(contenido, unsafe_allow_html=True)
         else:
             st.warning("Por favor, inicia sesión poder ingresar tu feedback.")
