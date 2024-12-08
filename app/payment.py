@@ -38,7 +38,7 @@ def crear_preferencia(order_id, total):
                 "title": f"Pedido #{order_id}",
                 "quantity": 1,
                 "currency_id": "CLP",  # Asegúrate de usar la moneda correcta
-                "unit_price": float(total)
+                "unit_price": total
             }
         ],
         "external_reference": str(order_id),  # Asociar la preferencia con la orden
