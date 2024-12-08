@@ -13,7 +13,7 @@ import json
 import bcrypt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
-from database import SessionLocal, User, Order, init_db, Producto, OrderItem
+from database import SessionLocal, User, Order, init_db, Producto, OrderItem,Feedback
 import os
 import re
 import time
