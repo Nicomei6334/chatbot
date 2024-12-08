@@ -133,6 +133,7 @@ def mostrar_pedidos():
         st.error(f"Error al obtener los pedidos: {e}")
     finally:
         db.close()
+
 def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
@@ -257,6 +258,9 @@ def gestionar_productos():
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
+
+opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
+satisfaccion_map = {op: i+1 for i, op in enumerate(opciones_satisfaccion)}
 
 def admin_ver_feedback():
     st.header("Historial de Feedback")
