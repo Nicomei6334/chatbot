@@ -872,12 +872,12 @@ def main():
         else:
             st.warning("Acceso denegado.")
         
-   elif st.session_state.page == 'adm_feedbacks':
+    elif st.session_state.page == 'adm_feedbacks':
         if st.session_state.admin_authenticated:
             admin_ver_feedback()
         else:
             st.warning("Acceso denegado.")
-   else:
+    else:
         st.warning("Página no encontrada.")
         
 
