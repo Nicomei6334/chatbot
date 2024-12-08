@@ -841,7 +841,7 @@ def main():
         else:
             st.warning("Por favor, inicia sesión para ver tus pedidos.")
             
-    elif st.session_state.page= 'feedback':
+    elif st.session_state.page== 'feedback':
         if st.session_state.logged_in and not st.session_state.admin_authenticated:
             contenido = mostrar_feedback()
             st.markdown(contenido, unsafe_allow_html=True)
