@@ -258,7 +258,33 @@ def gestionar_productos():
     finally:
         db.close()
 
+def admin_ver_feedback():
+    st.header("Historial de Feedback")
+    db = SessionLocal()
+    feedbacks = db.query(Feedback).order_by(Feedback.idfeedback.desc()).all()
+    db.close()
 
+    if not feedbacks:
+        st.info("No hay feedback registrado.")
+        return
+
+    # Mostrar un selectbox con los IDs de feedback
+    feedback_ids = [f.idfeedback for f in feedbacks]
+    selected_id = st.selectbox("Selecciona el número de feedback", feedback_ids)
+
+    # Mostrar la información del feedback seleccionado
+    selected_feedback = next((f for f in feedbacks if f.idfeedback == selected_id), None)
+    if selected_feedback:
+        # Convertir la escala numérica a texto (opcional)
+        invert_map = {v: k for k, v in satisfaccion_map.items()}
+        amigable_text = invert_map.get(selected_feedback.rating_amigable, "N/A")
+        rapidez_text = invert_map.get(selected_feedback.rating_rapidez, "N/A")
+
+        st.write(f"**Amigable:** {amigable_text}")
+        st.write(f"**Rapidez:** {rapidez_text}")
+        st.write(f"**¿Utilizaría en el futuro?:** {selected_feedback.future_use}")
+        st.write(f"**Comentario:** {selected_feedback.comment}")
+        st.write(f"**Fecha:** {selected_feedback.created_at}")
 
         
 def mostrar_estadisticas():
