@@ -1,6 +1,6 @@
 # app/payment.py
 import mercadopago
-import os
+
 from database import SessionLocal, Order
 from dotenv import load_dotenv
 import streamlit as st
@@ -11,34 +11,33 @@ import traceback
 # Obtener la ruta absoluta al directorio raíz del proyecto
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Cargar las variables de entorno
-load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
+MP_ACCESS_TOKEN = st.secrets[mercadopago][TK]
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 # Inicializar el cliente de MercadoPago
 
-
+sdk = mercadopago.SDK("MP_ACCESS_TOKEN")
 
 def crear_preferencia(order_id, total):
-    sdk = mercadopago.SDK("MP_ACCESS_TOKEN")
-    
+
     preference_data = {
         "items": [
             {
                 "title": f"Pedido #{order_id}",
                 "quantity": 1,
-                "currency_id": "ARS",
+                "currency_id": "CLP",  # Asegúrate de usar la moneda correcta
                 "unit_price": float(total)
             }
         ],
+        "external_reference": str(order_id),  # Asociar la preferencia con la orden
         "back_urls": {
-            "success": "https://tu_sitio.com/exito",
-            "failure": "https://tu_sitio.com/fallo",
-            "pending": "https://tu_sitio.com/pendiente"
+            "success": "https://tu_sitio.com/exito",     # URL donde redirigir al éxito
+            "failure": "https://tu_sitio.com/fallo",     # URL donde redirigir al fallo
+            "pending": "https://tu_sitio.com/pendiente"  # URL donde redirigir si está pendiente
         },
-        "auto_return": "approved"
+        "auto_return": "approved",
+        "notification_url": WEBHOOK_URL  # URL de tu webhook
     }
     try:
         preference_response = sdk.preference().create(preference_data)
