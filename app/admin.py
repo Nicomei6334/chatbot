@@ -175,7 +175,7 @@ def gestionar_productos():
 
         if lista_productos:
             # Crear un diccionario para mapear la opción seleccionada con el producto
-            opciones = ["Ninguno"] + [f"ID: {p.idproductos} - {p.nombre}" for p in lista_productos]
+            opciones = ["Ninguno"] + [f"SKU: {p.idproductos} - {p.nombre}" for p in lista_productos]
             producto_map = {f"ID: {p.idproductos} - {p.nombre}": p for p in lista_productos}
 
             seleccion = st.selectbox("Selecciona un producto para editar:", opciones)
@@ -229,7 +229,7 @@ def gestionar_productos():
         st.subheader("Añadir Nuevo Producto")
 
         with st.form("add_product_form", clear_on_submit=False):
-            nuevo_id = st.number_input("ID del Producto (único)", min_value=1, step=1, key="nuevo_id")
+            nuevo_id = st.number_input("SKU del Producto (único)", min_value=1, step=1, key="nuevo_id")
             nuevo_nombre = st.text_input("Nombre del Producto", key="nuevo_nombre")
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
             nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0, key="nuevo_precio")
