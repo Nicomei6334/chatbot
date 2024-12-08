@@ -1,18 +1,24 @@
 # admin.py
 
 import streamlit as st
-from database import SessionLocal, Order, User, Producto, OrderItem, Feedback  # Asegúrate de que estos modelos están definidos en database.py
+from database import SessionLocal, Order, User, Producto, OrderItem, Feedback 
 import pandas as pd
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
+from supabase import create_client, Client
+from PIL import Image
 import os
-from dotenv import load_dotenv
+import uuid
+import io
+from sqlalchemy.exc import IntegrityError
 
-
-# Obtener las credenciales de administrador desde el archivo .env
+# Obtener las credenciales de administrador
 ADMIN_USERNAME = st.secrets["admin"]["user"]
 ADMIN_PASSWORD = st.secrets["admin"]["pass"]
 
+SUPABASE_URL = st.secrets["SUPABASE"]["URL"]
+SUPABASE_KEY = st.secrets["SUPABASE"]["KEY"]
+BUCKET_NAME = "productos-imagenes"
 def authenticate_admin(username, password):
     """
     Verifica si las credenciales de administrador son correctas.
@@ -134,6 +140,52 @@ def mostrar_pedidos():
     finally:
         db.close()
 
+def get_supabase_client() -> Client:
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+    
+def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
+    # Generar un nombre único para la imagen
+    nombre_unico = f"{nombre_producto}_{uuid.uuid4().hex}.png"
+    
+    # Convertir la imagen a bytes
+    buffer = io.BytesIO()
+    imagen.save(buffer, format="PNG")
+    buffer.seek(0)
+    
+    # Subir la imagen al bucket
+    supabase: Client = get_supabase_client()
+    try:
+        supabase.storage.from_(BUCKET_NAME).upload(nombre_unico, buffer, content_type="image/png")
+        
+        # Obtener la URL pública de la imagen
+        url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico).public_url
+        return url
+    except Exception as e:
+        st.error(f"Error al subir la imagen: {e}")
+        return ""
+def validar_imagen(file) -> Image.Image:
+    try:
+        imagen = Image.open(file)
+        # Validar el formato
+        if imagen.format not in ["PNG", "JPEG", "JPG"]:
+            st.error("Formato de imagen no soportado. Solo se permiten PNG y JPG.")
+            return None
+        # Validar dimensiones
+        if imagen.size != (100, 100):
+            st.error("La imagen debe tener dimensiones exactas de 100x100 píxeles.")
+            return None
+        # Validar tamaño (200KB)
+        file.seek(0, os.SEEK_END)
+        size_kb = file.tell() / 1024
+        if size_kb > 200:
+            st.error("El tamaño de la imagen excede los 200KB.")
+            return None
+        file.seek(0)
+        return imagen
+    except Exception as e:
+        st.error(f"Error al procesar la imagen: {e}")
+        return None
+        
 def gestionar_productos():
     """
     Permite al administrador gestionar los productos (editar, añadir, eliminar).
@@ -179,7 +231,7 @@ def gestionar_productos():
             producto_map = {f"SKU: {p.idproductos} - {p.nombre}": p for p in lista_productos}
 
             seleccion = st.selectbox("Selecciona un producto para editar:", opciones)
-            
+
             if seleccion != "Ninguno":
                 producto = producto_map[seleccion]
                 # Mostrar formulario para editar producto seleccionado
@@ -188,7 +240,32 @@ def gestionar_productos():
                     nueva_unidad = st.text_input("Unidad", value=producto.unidad)
                     nuevo_precio = st.number_input("Precio", value=producto.precio, step=1.0)
                     nuevo_stock = st.number_input("Stock", value=producto.stock, step=1)
-                    nueva_imagen = st.text_input("URL de la Imagen", value=producto.imagen if producto.imagen else "")
+
+                    # Subida de imagen
+                    st.markdown("**Imagen del Producto**")
+                    archivo_imagen = st.file_uploader(
+                        "Sube una imagen (PNG o JPG, máximo 100x100 píxeles, 200KB)",
+                        type=["png", "jpg", "jpeg"],
+                        key=f"editar_imagen_{producto.idproductos}"
+                    )
+                    if archivo_imagen:
+                        imagen_valida = validar_imagen(archivo_imagen)
+                        if imagen_valida:
+                            # Subir la imagen y obtener la URL
+                            url_imagen = subir_imagen_a_supabase(imagen_valida, nuevo_nombre)
+                            if url_imagen:
+                                nueva_imagen = url_imagen
+                            else:
+                                nueva_imagen = producto.imagen  # Mantener la imagen anterior si falla la subida
+                        else:
+                            nueva_imagen = producto.imagen  # Mantener la imagen anterior si la validación falla
+                    else:
+                        nueva_imagen = producto.imagen  # No cambiar si no se sube una nueva imagen
+
+                    # Mostrar las limitaciones de la imagen
+                    st.markdown(
+                        "📌 **Limitaciones de la imagen:** Formatos soportados: PNG, JPG, JPEG. Tamaño máximo: 100x100 píxeles y 200KB."
+                    )
 
                     col1, col2 = st.columns(2)
                     with col1:
@@ -234,7 +311,32 @@ def gestionar_productos():
             nueva_unidad = st.text_input("Unidad (ejemplo: kg, unidad)", key="nueva_unidad")
             nuevo_precio = st.number_input("Precio", min_value=0.0, step=1.0, key="nuevo_precio")
             nuevo_stock = st.number_input("Stock", min_value=0, step=1, key="nuevo_stock")
-            nueva_imagen = st.text_input("URL de la Imagen", key="nueva_imagen")
+
+            # Subida de imagen
+            st.markdown("**Imagen del Producto**")
+            archivo_imagen = st.file_uploader(
+                "Sube una imagen (PNG o JPG, máximo 100x100 píxeles, 200KB)",
+                type=["png", "jpg", "jpeg"],
+                key="agregar_imagen"
+            )
+            if archivo_imagen:
+                imagen_valida = validar_imagen(archivo_imagen)
+                if imagen_valida:
+                    # Subir la imagen y obtener la URL
+                    url_imagen = subir_imagen_a_supabase(imagen_valida, nuevo_nombre)
+                    if url_imagen:
+                        nueva_imagen = url_imagen
+                    else:
+                        nueva_imagen = ""  # Dejar vacío si falla la subida
+                else:
+                    nueva_imagen = ""  # Dejar vacío si la validación falla
+            else:
+                nueva_imagen = ""  # No subir imagen si no se selecciona
+
+            # Mostrar las limitaciones de la imagen
+            st.markdown(
+                "📌 **Limitaciones de la imagen:** Formatos soportados: PNG, JPG, JPEG. Tamaño máximo: 100x100 píxeles y 200KB."
+            )
 
             submit = st.form_submit_button("Añadir Producto")
 
@@ -258,17 +360,25 @@ def gestionar_productos():
                         imagen=nueva_imagen
                     )
                     db.add(nuevo_producto)
-                    db.commit()
-                    st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
-                    st.session_state["last_submission_success"] = True
-                    st.stop()
+                    try:
+                        db.commit()
+                        st.success(f"Producto '{nuevo_nombre}' añadido exitosamente con ID {nuevo_id}.")
+                        st.session_state["last_submission_success"] = True
+                        st.stop()
+                    except IntegrityError:
+                        db.rollback()
+                        st.error("Error de integridad al añadir el producto. Revisa los datos ingresados.")
+                    except Exception as e:
+                        db.rollback()
+                        st.error(f"Error al añadir el producto: {e}")
                 else:
-                    st.error("Por favor, completa todos los campos obligatorios.")
+                    st.error("Por favor, completa todos los campos obligatorios y asegúrate de que la imagen cumpla con las especificaciones.")
 
     except Exception as e:
         st.error(f"Error al gestionar productos: {e}")
     finally:
         db.close()
+
         
 opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
 satisfaccion_map = {op: i+1 for i, op in enumerate(opciones_satisfaccion)}
