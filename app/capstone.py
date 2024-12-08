@@ -386,8 +386,7 @@ def finalizar_pedido(productos):
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
             
-            # Botón para pagar con MercadoPago
-            st.markdown(f"**[Pagar con MercadoPago]({init_point})**", unsafe_allow_html=True)
+          
             
             # Botón para cancelar la compra
             if st.button("Cancelar Compra", key=f"cancelar_compra_{order_id}"):
