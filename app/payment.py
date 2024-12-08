@@ -41,9 +41,9 @@ def crear_preferencia(order_id, total):
         ],
         "external_reference": str(order_id),  # Asociar la preferencia con la orden
         "back_urls": {
-            "success": "https://tu_sitio.com/exito",     # URL donde redirigir al éxito
-            "failure": "https://tu_sitio.com/fallo",     # URL donde redirigir al fallo
-            "pending": "https://tu_sitio.com/pendiente"  # URL donde redirigir si está pendiente
+            "success": f"https://chatbotverduras.streamlit.app?payment_status=approved&order_id={order_id}",
+            "failure": f"https://chatbotverduras.streamlit.app?payment_status=rejected&order_id={order_id}",
+            "pending": f"https://chatbotverduras.streamlit.app?payment_status=pending&order_id={order_id}"
         },
         "auto_return": "approved",
         "notification_url": WEBHOOK_URL  # URL de tu webhook
