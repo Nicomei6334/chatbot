@@ -133,16 +133,11 @@ class Response(Base):
 class Feedback(Base):
     __tablename__ = "feedback"
     idfeedback = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.idusers"), nullable=False)
-    message_id = Column(Integer, ForeignKey("messages.idmessages"), nullable=False)
-    rating = Column(Integer, nullable=False)
-    comment = Column(Text)
+    rating_amigable = Column(Integer, nullable=True)
+    rating_rapidez = Column(Integer, nullable=True)
+    future_use = Column(String(50), nullable=True)
+    comment = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    ## relationships
-    user = relationship("User", back_populates="feedbacks")
-    message = relationship("Message", back_populates="feedbacks")
-
 
 ## Tabla Context
 class Context(Base):
