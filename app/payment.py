@@ -20,7 +20,16 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 sdk = mercadopago.SDK("MP_ACCESS_TOKEN")
 
 def crear_preferencia(order_id, total):
+    """
+    Crea una preferencia de pago en MercadoPago.
 
+    Args:
+        order_id (int): ID del pedido.
+        total (float): Total del pedido en CLP.
+
+    Returns:
+        str: URL de inicio de pago de MercadoPago o None si falla.
+    """    
     preference_data = {
         "items": [
             {
