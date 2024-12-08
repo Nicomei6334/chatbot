@@ -63,64 +63,12 @@ def local_css(file_name):
 ADMIN_USERNAME = st.secrets["admin"]["user"]
 ADMIN_PASSWORD = st.secrets["admin"]["pass"]
 
-
-# Función para cargar el historial de mensajes
-
-def cargar_historial_mensajes(user_id):
-    db = SessionLocal()
-    try:
-        mensajes = db.query(Message).filter(Message.user_id == user_id).order_by(Message.timestamp).all()
-        st.session_state.messages = [
-            {"role": "user" if msg.sender == "user" else "assistant", "content": msg.content}
-            for msg in mensajes
-        ]
-    except Exception:
-        st.error("Ocurrió un error al cargar el historial de mensajes.")
-    finally:
-        db.close()
-
 def validar_dominio(email):
     dominios_permitidos = ['gmail.com', 'outlook.com', 'hotmail.com']
     dominio = email.split('@')[-1]
     if dominio in dominios_permitidos or re.match(r".+\.(edu|org|gov)$", dominio):
         return True
     return False
-def historial_mensajes_page():
-    st.header("Historial de Mensajes")
-    
-    db = SessionLocal()
-    try:
-        # Obtener todos los mensajes del usuario
-        mensajes = db.query(Message).filter(Message.user_id == st.session_state.user_id).order_by(Message.timestamp.desc()).all()
-        
-        if not mensajes:
-            st.info("No tienes mensajes en tu historial.")
-            return
-        
-        # Agrupar mensajes por fecha
-        mensajes_por_fecha = {}
-        for msg in mensajes:
-            fecha = msg.timestamp.date()
-            if fecha not in mensajes_por_fecha:
-                mensajes_por_fecha[fecha] = []
-            mensajes_por_fecha[fecha].append(msg)
-        
-        # Listar las fechas disponibles
-        fechas_disponibles = sorted(mensajes_por_fecha.keys(), reverse=True)
-        
-        # Seleccionar una fecha para ver los mensajes
-        selected_date = st.selectbox("Selecciona una fecha para ver los mensajes:", fechas_disponibles, format_func=lambda x: x.strftime("%d/%m/%Y"))
-        
-        st.markdown(f"### Conversaciones del **{selected_date.strftime('%d/%m/%Y')}**")
-        
-        # Mostrar los mensajes de la fecha seleccionada
-        for msg in mensajes_por_fecha[selected_date]:
-            with st.chat_message("user" if msg.sender == "user" else "assistant"):
-                st.markdown(msg.content, unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Ocurrió un error al cargar el historial de mensajes: {e}")
-    finally:
-        db.close()
         
 def initialize_session():
     if "logged_in" not in st.session_state:
@@ -151,7 +99,7 @@ def sidebar_menu():
         menu_title = "Administrador"
     elif st.session_state.logged_in:
         menu_key = "menu_user"
-        options = ["Chatbot", "Historial Mensajes", "Mis Pedidos","Danos tu feedback", "Cerrar Sesión"]
+        options = ["Chatbot", "Historial Mensajes(PROXIMAMENTE)", "Mis Pedidos","Danos tu feedback", "Cerrar Sesión"]
         icons = ["chat", "clock-history", "list-task", "box-arrow-right"]
         menu_title = "Usuario"
     else:
@@ -239,7 +187,7 @@ def register_page():
                         st.session_state.boleta_generada = False
                         st.session_state.menu_mostrado = False
                         st.session_state.first_message = True
-                        cargar_historial_mensajes(new_user.idusers)
+                  
                         
                         st.success("Registro exitoso. Ahora puedes acceder al chatbot.")
                         # Reiniciar el menú para forzar la actualización
@@ -281,7 +229,7 @@ def login_page():
                         st.session_state.menu_mostrado = False
                         
                         st.session_state.first_message = True
-                        cargar_historial_mensajes(user.idusers)
+
                         
                         st.success("Has iniciado sesión exitosamente.")
                         
