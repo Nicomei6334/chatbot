@@ -7,7 +7,9 @@ import streamlit as st
 import logging
 import traceback
 
-
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 MP_ACCESS_TOKEN = st.secrets["mercadopago"]["TK"]
