@@ -717,14 +717,16 @@ def chatbot_page():
 
 def mostrar_feedback():
     st.header("Tu opinión es importante para nosotros") 
+
     opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
     satisfaccion_map = {op: i+1 for i, op in enumerate(opciones_satisfaccion)}
     st.subheader("Sección 1: Satisfacción general del servicio")
-    rating_amigable_resp = st.radio("Amigable", opciones_satisfaccion)
-    rating_rapidez_resp = st.radio("Rapidez", opciones_satisfaccion)
+    rating_amigable_resp = st.radio("¿El sistema lo considera amigable a su uso?", opciones_satisfaccion)
+    rating_rapidez_resp = st.radio("¿Considera el sistema rapido?", opciones_satisfaccion)
     st.subheader("Sección 2: ¿Utilizarías nuestro servicio al cliente en el futuro?")
     future_use_resp = st.radio("", ["Sí", "No", "Tal vez"])
     st.subheader("Sección 3: ¿Cómo podemos mejorar nuestro servicio?")
+    st.subheader("Escriba su opinión")
     comment_resp = st.text_area("")
         
     if st.button("Enviar"):
