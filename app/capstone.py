@@ -332,7 +332,6 @@ def cancelar_pedido(order_id):
 
 def generar_boleta(carrito, productos, order_id):
     if carrito:
-        db = SessionLocal()
         contenido = "### 🧾 Boleta de Compra #{order_id}\n\n"
         contenido += "| Producto | Cantidad | Subtotal (CLP) | IVA (19%) (CLP) | Total (CLP) |\n"
         contenido += "|---|---|---|---|---|\n"
@@ -365,32 +364,62 @@ def generar_boleta(carrito, productos, order_id):
 
 def finalizar_pedido(productos):
     carrito = st.session_state.get('carrito', {})
-    total = st.session_state.get('total_pedido', 0.0)
+    total_cents = st.session_state.get('total_pedido', 0)
+    total_pesos = total_cents / 100.0  # Convertir a pesos para la preferencia
+
     if carrito:
-        order_id = registrar_pedido(
-            user_id=st.session_state.user_id,
-            carrito=carrito,
-            total=total
-        )
-        if order_id:
-            # Crear preferencia de pago y obtener el enlace de MercadoPago
-            init_point = crear_preferencia(order_id, total)
-            
+        db = SessionLocal()
+        try:
+            # Crear la orden en la base de datos con estado 'pendiente'
+            new_order = Order(
+                user_id=st.session_state.user_id,
+                status="pendiente",
+                total=total_cents  # Almacenado en centavos
+            )
+            db.add(new_order)
+            db.commit()
+            db.refresh(new_order)
+            order_id = new_order.idorders
+
+            # Crear los items para MercadoPago
+            items = []
+            for nombre, detalle in st.session_state.carrito.items():
+                items.append({
+                    "title": nombre,
+                    "quantity": detalle['cantidad'],
+                    "currency_id": "CLP",
+                    "unit_price": detalle['precio']
+                })
+
+            # Crear preferencia de pago
+            init_point = crear_preferencia(order_id, total_cents)
+
+            if not init_point:
+                st.error("No se pudo crear la preferencia de pago.")
+                return
+
+            # Almacenar el enlace de pago en la base de datos
+            new_order.preference_url = init_point
+            db.commit()
+
             # Generar la boleta
-            boleta = generar_boleta(carrito, productos, order_id)
+            boleta, _ = generar_boleta(carrito, productos, order_id)
             st.session_state['boleta_generada'] = True
             st.session_state['boleta'] = boleta
-            st.session_state['total_pedido'] = total
             st.session_state['mostrar_boton_pago'] = True
-            
+
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
-            
-          
-            
-            # Botón para cancelar la compra
-            if st.button("Cancelar Compra", key=f"cancelar_compra_{order_id}"):
-                cancelar_pedido(order_id)
+            # Limpiar el carrito y otras variables
+            st.session_state.carrito = {}
+            st.session_state.boleta_generada = False
+            st.session_state.mostrar_boton_pago = False
+            except Exception as e:
+            db.rollback()
+            st.error(f"Error al finalizar el pedido: {e}")
+            return
+        finally:
+            db.close()
     else:
         st.warning("No hay productos en el carrito para finalizar el pedido.")
 
@@ -630,50 +659,6 @@ def chatbot_page():
     if st.session_state.get('menu_mostrado', False):
         mostrar_menu_interactivo(productos)
     
-    # Mostrar el botón de "Pagar" si se ha generado una boleta
-    if st.session_state.get('mostrar_boton_pago', False):
-        if st.button("Pagar con MercadoPago"):
-            # Crear la orden en la base de datos con estado 'pendiente'
-            db = SessionLocal()
-            try:
-                new_order = Order(
-                    user_id=st.session_state.user_id,
-                    status="pendiente",
-                    total=st.session_state.total_pedido
-                )
-                db.add(new_order)
-                db.commit()
-                db.refresh(new_order)
-                order_id = new_order.idorders
-            except Exception as e:
-                db.rollback()
-                st.error(f"Error al crear la orden: {e}")
-                return
-            finally:
-                db.close()
-            
-            # Crear los items para MercadoPago
-            items = []
-            for nombre, detalle in st.session_state.carrito.items():
-                items.append({
-                    "title": nombre,
-                    "quantity": detalle['cantidad'],
-                    "currency_id": "CLP",
-                    "unit_price": detalle['precio']
-                })
-            
-            # Crear preferencia de pago
-            init_point = crear_preferencia(order_id, st.session_state.user_id, items, st.session_state.total_pedido)
-            
-            # Redirigir al usuario al checkout
-            st.success("Redirigiendo a MercadoPago...")
-            st.markdown(f"[Pagar Ahora]({init_point})", unsafe_allow_html=True)
-            
-            # Limpiar el carrito y otras variables
-            st.session_state.carrito = {}
-            st.session_state.boleta_generada = False
-            st.session_state.mostrar_boton_pago = False
-
 def mostrar_feedback():
     st.header("Tu opinión es importante para nosotros") 
 
