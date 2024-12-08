@@ -17,7 +17,11 @@ WEBHOOK_URL = st.secrets["WEEBHOOK"]["WH"]
 
 # Inicializar el cliente de MercadoPago
 
-sdk = mercadopago.SDK("MP_ACCESS_TOKEN")
+sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
+
+if not WEBHOOK_URL:
+    logger.error("WEBHOOK_URL no está configurada.")
+    st.error("Configuración de Webhook no encontrada. Por favor, revisa las variables de entorno.")
 
 def crear_preferencia(order_id, total):
     """
