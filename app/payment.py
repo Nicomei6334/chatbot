@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 MP_ACCESS_TOKEN = st.secrets[mercadopago][TK]
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBHOOK_URL = st.secrets[WEEBHOOK][WH]
 
 # Inicializar el cliente de MercadoPago
 
