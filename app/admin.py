@@ -144,6 +144,9 @@ def get_supabase_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
     
 def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
+    """
+    Sube una imagen a un bucket de Supabase y retorna su URL pública.
+    """
     # Generar un nombre único para la imagen
     nombre_unico = f"{nombre_producto}_{uuid.uuid4().hex}.png"
     
@@ -155,11 +158,17 @@ def subir_imagen_a_supabase(imagen: Image.Image, nombre_producto: str) -> str:
     # Subir la imagen al bucket
     supabase: Client = get_supabase_client()
     try:
-        supabase.storage.from_(BUCKET_NAME).upload(nombre_unico, buffer, content_type="image/png")
-        
-        # Obtener la URL pública de la imagen
-        url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico).public_url
-        return url
+        # Subir imagen sin usar content_type
+        resultado = supabase.storage.from_(BUCKET_NAME).upload(nombre_unico, buffer)
+
+        # Comprobar si la subida fue exitosa
+        if resultado:
+            # Generar URL pública
+            url = supabase.storage.from_(BUCKET_NAME).get_public_url(nombre_unico)
+            return url
+        else:
+            st.error("No se pudo subir la imagen.")
+            return ""
     except Exception as e:
         st.error(f"Error al subir la imagen: {e}")
         return ""
