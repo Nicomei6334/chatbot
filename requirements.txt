@@ -12,3 +12,6 @@ nltk
 tensorflow
 fuzzywuzzy
 psycopg2-binary
+supabase
+pillow 
+python-multipart
