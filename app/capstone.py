@@ -146,7 +146,7 @@ def sidebar_menu():
     # Generar una clave única basada en el estado de la sesión para forzar la actualización del menú
     if st.session_state.admin_authenticated:
         menu_key = "menu_admin"
-        options = ["Ver Pedidos", "Estadísticas", "Gestionar Productos",  "Cerrar Sesión Admin"]
+        options = ["Ver Pedidos", "Estadísticas", "Gestionar Productos","Ver feedbacks", "Cerrar Sesión Admin"]
         icons = ["cart", "bar-chart", "box-arrow-right"]
         menu_title = "Administrador"
     elif st.session_state.logged_in:
@@ -715,7 +715,7 @@ def chatbot_page():
             st.session_state.boleta_generada = False
             st.session_state.mostrar_boton_pago = False
 
-def mostrar_feedback():
+    def mostrar_feedback():
     st.header("Tu opinión es importante para nosotros")
 
     opciones_satisfaccion = ["Muy Satisfecho", "Satisfecho", "Neutral", "Insatisfecho", "Muy Insatisfecho"]
@@ -796,8 +796,8 @@ def main():
         elif selected == "Cerrar Sesión Admin":
             st.session_state.admin_authenticated = False
             st.session_state.page = 'login'
+  
     elif st.session_state.logged_in:
-        
         if selected == "Chatbot":
             st.session_state.page = 'chatbot'
         elif selected == "Mis Pedidos":
