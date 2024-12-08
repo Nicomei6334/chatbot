@@ -1,7 +1,7 @@
 # admin.py
 
 import streamlit as st
-from database import SessionLocal, Order, User, Producto, OrderItem  # Asegúrate de que estos modelos están definidos en database.py
+from database import SessionLocal, Order, User, Producto, OrderItem, Feedback  # Asegúrate de que estos modelos están definidos en database.py
 import pandas as pd
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
