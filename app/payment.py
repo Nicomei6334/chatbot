@@ -8,8 +8,6 @@ import logging
 import traceback
 
 
-# Obtener la ruta absoluta al directorio raíz del proyecto
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 MP_ACCESS_TOKEN = st.secrets["mercadopago"]["TK"]
