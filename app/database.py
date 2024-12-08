@@ -103,7 +103,6 @@ class Message(Base):
 
     ## relationships
     user = relationship("User", back_populates="messages")
-    feedbacks = relationship("Feedback", back_populates="message")
 
 
 ## Tabla Intent
