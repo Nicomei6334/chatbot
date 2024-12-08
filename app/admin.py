@@ -365,9 +365,9 @@ def mostrar_estadisticas():
 
         st.subheader("📊 Estadísticas del Negocio")
         st.metric("Total de Pedidos", total_pedidos)
-        st.metric("Total de Ingresos (desde orders.total)", f"${total_ingresos:,.0f} CLP")
+        st.metric("Total de Ingresos ", f"${total_ingresos:,.0f} CLP")
         st.metric("Cantidad Total de Productos Vendidos", total_productos_vendidos)
-        st.metric("Total de Ventas (calculado desde items)", f"${total_ventas:,.0f} CLP")
+        st.metric("Total de Ventas ", f"${total_ventas:,.0f} CLP")
 
         # Producto Más Vendido (anterior)
         if producto_mas_vendido:
