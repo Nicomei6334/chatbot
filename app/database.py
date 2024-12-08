@@ -44,7 +44,7 @@ class User(Base):
     orders = relationship("Order", back_populates="user")
     messages = relationship("Message", back_populates="user")
     context = relationship("Context", back_populates="user")
-    feedbacks = relationship("Feedback", back_populates="user")
+
 
 
 ## Tabla Orders
