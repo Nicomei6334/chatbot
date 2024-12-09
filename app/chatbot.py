@@ -9,11 +9,13 @@ from tensorflow.keras.models import load_model
 from fuzzywuzzy import process
 import re
 import streamlit as st
-from database import SessionLocal, Order
+from database import SessionLocal, Order, Producto  # Asegúrate de importar Producto
 from dotenv import load_dotenv
 import os
-nltk.download('punkt_tab')
+nltk.download('punkt')
 nltk.download('wordnet')
+from sqlalchemy import func
+
 # Obtener la ruta absoluta al directorio 'data'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Directorio raíz del proyecto
 DATA_DIR = os.path.join(BASE_DIR, 'data')
@@ -27,7 +29,6 @@ with open(intents_path, 'r', encoding='utf-8') as f:
 
 # Cargar las variables de entorno
 load_dotenv(os.path.join(BASE_DIR, '.env'))
-
 
 def local_css(file_name):
     css_path = os.path.join(BASE_DIR, 'styles', file_name)
@@ -60,7 +61,7 @@ def cargar_productos_db():
     db = SessionLocal()
     try:
         productos = db.query(Producto).all()
-        productos_dict = {p.nombre: p for p in productos}
+        productos_dict = {p.nombre.strip(): p for p in productos}
         return productos_dict
     except Exception as e:
         st.error(f"Error al cargar los productos desde la base de datos: {e}")
@@ -68,46 +69,47 @@ def cargar_productos_db():
     finally:
         db.close()
 
+productos = cargar_productos_db()
 
 def inicializar_carrito():
     if 'carrito' not in st.session_state:
         st.session_state.carrito = {}
 
 def encontrar_producto(nombre_producto):
-    nombres_productos = [producto['nombre'] for producto in productos]
-    nombre_producto = nombre_producto.lower()
-    nombres_productos_lower = [p.lower() for p in nombres_productos]
-    coincidencia, puntuacion = process.extractOne(nombre_producto, nombres_productos_lower)
+    nombres_productos = [producto.nombre.lower() for producto in productos.values()]
+    coincidencia, puntuacion = process.extractOne(nombre_producto.lower(), nombres_productos)
     if puntuacion >= 80:
         # Retornar el producto completo
-        indice = nombres_productos_lower.index(coincidencia)
-        return productos[indice]
+        indice = nombres_productos.index(coincidencia)
+        nombre_real = list(productos.keys())[indice]
+        return productos[nombre_real]
     else:
         return None
 
 def agregar_producto_carrito(nombre_producto, cantidad):
     producto = encontrar_producto(nombre_producto)
     if producto:
-        nombre = producto['nombre']
-        unidad = producto['unidad']
+        nombre = producto.nombre
+        unidad = producto.unidad
+        precio = producto.precio
         if nombre in st.session_state.carrito:
             st.session_state.carrito[nombre]['cantidad'] += cantidad
         else:
             st.session_state.carrito[nombre] = {
                 'unidad': unidad,
-                'precio': producto['precio'],
+                'precio': precio,
                 'cantidad': cantidad
             }
         key_cantidad = f"cantidad_{nombre}"
         st.session_state[key_cantidad] = st.session_state.carrito[nombre]['cantidad']
-        return f"He añadido {cantidad} {unidad} de {nombre} a tu carrito."
+        return f"He añadido {cantidad} {unidad}(s) de {nombre} a tu carrito."
     else:
         return "Producto no reconocido. Por favor, intenta de nuevo."
 
 def eliminar_producto_carrito(nombre_producto):
     producto = encontrar_producto(nombre_producto)
     if producto:
-        nombre = producto['nombre']
+        nombre = producto.nombre
         if nombre in st.session_state.carrito:
             del st.session_state.carrito[nombre]
             return f"He eliminado {nombre} de tu carrito."
@@ -125,8 +127,13 @@ def cancelar_pedido(order_id):
             db.commit()
             st.success("Compra cancelada exitosamente. Gracias por utilizar nuestro sistema de ventas.")
             
-            # Opcional: Manejar el reembolso si ya se procesó el pago
-            # Aquí podrías integrar la lógica de reembolso con MercadoPago
+            # Limpiar el estado de la sesión
+            st.session_state.carrito = {}
+            st.session_state.total_pedido = 0
+            st.session_state.boleta_generada = False
+            st.session_state.mostrar_boton_pago = False
+            st.session_state.menu_mostrado = False
+            st.session_state['current_order_id'] = None
         else:
             st.error("Pedido no encontrado.")
     except Exception as e:
@@ -134,7 +141,7 @@ def cancelar_pedido(order_id):
         st.error(f"Error al cancelar el pedido: {e}")
     finally:
         db.close()
-        
+
 def ver_carrito():
     if st.session_state.carrito:
         contenido = ""
@@ -167,7 +174,6 @@ def ver_carrito():
         return contenido
     else:
         return "Tu carrito está vacío."
-
 
 def calcular_total():
     total = 0
@@ -219,7 +225,7 @@ def get_response(intents_list, intents_json, message):
         if i['tag'] == tag:
             if tag == 'ver_productos':
                 # Mostrar lista de productos
-                lista_productos = ', '.join([p['nombre'] for p in productos])
+                lista_productos = ', '.join([p.nombre for p in productos.values()])
                 result = i['responses'][0].replace('[lista_productos]', lista_productos)
             elif tag == 'mostrar_menu':
                 # Indicar que se debe mostrar el menú interactivo
@@ -235,7 +241,7 @@ def get_response(intents_list, intents_json, message):
                         # Determinar la unidad según el producto
                         producto = encontrar_producto(nombre_producto)
                         if producto:
-                            unidad = producto['unidad']
+                            unidad = producto.unidad
                         else:
                             unidad = ''
                     nombre_producto = nombre_producto.strip()
@@ -245,9 +251,17 @@ def get_response(intents_list, intents_json, message):
                     result = "Por favor, especifica el producto y la cantidad que deseas agregar."
 
             elif tag == 'cancelar':
-                result = random.choice(i['responses'])
-                # Ocultar el menú al cancelar
-                st.session_state.menu_mostrado = False
+                # Cancelar el pedido y mostrar agradecimiento
+                # Asumiendo que 'current_order_id' está almacenado en session_state
+                order_id = st.session_state.get('current_order_id', None)
+                if order_id:
+                    cancelar_pedido(order_id)
+                    # Mostrar mensaje de agradecimiento
+                    result = "¡Gracias por preferirnos! 😊"
+                    # Limpiar el estado de la sesión
+                    st.session_state.menu_mostrado = False
+                else:
+                    result = "No tienes un pedido activo para cancelar."
             else:
                 result = random.choice(i['responses'])
             break
