@@ -545,7 +545,7 @@ def mostrar_menu_interactivo(productos):
 
                 with col:
                     # Mostrar imagen con un ancho fijo para evitar tamaños inconsistentes
-                    st.image(imagen, width=150, use_column_width=False)
+                    st.image(imagen, width=150, use_container_width=False)
                     st.markdown(f"**{nombre}**")
                     st.markdown(f"Precio: ${precio:,.0f} CLP")
                     st.markdown(f"Stock: {stock} {unidad}(s)")
