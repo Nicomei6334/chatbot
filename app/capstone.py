@@ -312,7 +312,6 @@ def ver_historial_pedidos():
                 if status == "pendiente":
                     if st.button("Cancelar Pedido", key=f"cancelar_pedido_{pedido.idorders}"):
                         cancelar_pedido(pedido.idorders)
-                        st.experimental_rerun()  # Re-renderiza la página para reflejar cambios
 
     except Exception as e:
         st.error(f"Ocurrió un error al cargar el historial de pedidos: {e}")
