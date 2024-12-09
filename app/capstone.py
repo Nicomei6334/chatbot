@@ -257,7 +257,6 @@ logger = logging.getLogger(__name__)
 def ver_historial_pedidos():
     db = SessionLocal()
     try:
-        # Consultar los pedidos del usuario con sus items y productos asociados
         pedidos = db.query(Order).options(
             joinedload(Order.order_items).joinedload(OrderItem.producto)
         ).filter(Order.user_id == st.session_state.user_id).order_by(Order.timestamp.desc()).all()
@@ -270,80 +269,55 @@ def ver_historial_pedidos():
         
         for pedido in pedidos:
             with st.expander(f"Pedido #{pedido.idorders} - {pedido.timestamp.strftime('%Y-%m-%d %H:%M:%S')}", expanded=False):
-                # Mostrar el estado del pedido con estilos CSS
+                # Mostrar el estado del pedido con clase CSS
                 status = pedido.status.lower()
-                status_classes = {
-                    "pendiente": "status-pendiente",
-                    "aprobado": "status-aprobado",
-                    "rechazado": "status-rechazado",
-                    "cancelado": "status-cancelado"
-                }
-                status_class = status_classes.get(status, "status-unknown")
+                if status == "pendiente":
+                    status_class = "status-pendiente"
+                elif status == "aprobado":
+                    status_class = "status-aprobado"
+                elif status == "rechazado":
+                    status_class = "status-rechazado"
+                elif status == "cancelado":
+                    status_class = "status-cancelado"
+                else:
+                    status_class = "status-unknown"
                 
                 st.markdown(f"**Estado:** <span class='{status_class}'>{pedido.status.capitalize()}</span>", unsafe_allow_html=True)
                 st.markdown(f"**Total:** <div class='order-total'>${pedido.total:,.0f} CLP</div>", unsafe_allow_html=True)
                 
-                # Verificar si el pedido tiene items
-                if not pedido.order_items:
-                    st.info("No hay productos en este pedido.")
-                else:
-                    st.markdown("### Detalles del Pedido:")
-                    
-                    # Crear una tabla utilizando Streamlit's layout
-                    for item in pedido.order_items:
-                        producto = item.producto
-                        if producto:
-                            col1, col2, col3, col4, col5 = st.columns([1, 3, 1, 2, 2])
-                            with col1:
-                                if producto.imagen:
-                                    st.image(producto.imagen, width=50)
-                                else:
-                                    st.image('https://via.placeholder.com/50', width=50)
-                            with col2:
-                                st.markdown(f"**{producto.nombre}**")
-                            with col3:
-                                st.write(f"Cantidad: {item.quantity}")
-                            with col4:
-                                st.write(f"Precio Unitario: ${item.unit_price:,.0f} CLP")
-                            with col5:
-                                subtotal = item.quantity * item.unit_price
-                                st.write(f"Subtotal: ${subtotal:,.0f} CLP")
-                            
-                            st.markdown("---")
-                        else:
-                            st.write("Producto desconocido.")
+                # Crear una tabla para los items del pedido
+                contenido = "| Imagen | Producto | Cantidad | Precio Unitario (CLP) | Subtotal (CLP) |\n"
+                contenido += "|---|---|---|---|---|\n"
+                
+                for item in pedido.order_items:
+                    producto = item.producto
+                    if producto:
+                        nombre_producto = producto.nombre
+                        cantidad = item.quantity
+                        precio = item.unit_price
+                        subtotal = cantidad * precio
+                        imagen_url = producto.imagen if producto.imagen else 'https://via.placeholder.com/100'
+                        imagen_html = f"<img src='{imagen_url}' alt='{nombre_producto}' width='50'>"
+                        contenido += f"| {imagen_html} | {nombre_producto} | {cantidad} | ${precio:,.0f} | ${subtotal:,.0f} |\n"
+                    else:
+                        contenido += f"| Sin imagen | Desconocido | {item.quantity} | ${item.unit_price:,.0f} | ${item.quantity * item.unit_price:,.0f} |\n"
+                
+                st.markdown(contenido, unsafe_allow_html=True)
                 
                 # Mostrar enlace a MercadoPago si el estado es pendiente
                 if status == "pendiente" and pedido.preference_url:
                     st.markdown(f"**[Completar Pago en MercadoPago]({pedido.preference_url})**", unsafe_allow_html=True)
                 
-                # Opciones para Cancelar o Modificar el Pedido si está pendiente
+                # Botón para cancelar el pedido si está pendiente
                 if status == "pendiente":
-                    st.markdown("### Opciones:")
-                    opcion = st.radio(
-                        f"Selecciona una opción para el Pedido #{pedido.idorders}:",
-                        ("Cancelar Pedido", "Modificar Pedido"),
-                        key=f"opcion_pedido_{pedido.idorders}"
-                    )
-                    
-                    if opcion == "Cancelar Pedido":
-                        if st.button("Confirmar Cancelación", key=f"confirm_cancelar_pedido_{pedido.idorders}"):
-                            cancelar_pedido(pedido.idorders)
-                            st.success("Pedido cancelado exitosamente. ¡Gracias por utilizar nuestro sistema!")
-                    
-                    elif opcion == "Modificar Pedido":
-                        if st.button("Modificar Pedido", key=f"modificar_pedido_{pedido.idorders}"):
-                            # Implementar la lógica para modificar el pedido
-                            # Por ejemplo, volver al carrito para hacer cambios
-                            st.session_state.carrito = {}
-                            st.session_state.total_pedido = 0
-                            st.session_state.menu_mostrado = True
-                            st.success("Puedes modificar tu pedido seleccionando los productos nuevamente.")
+                    if st.button("Cancelar Pedido", key=f"cancelar_pedido_{pedido.idorders}"):
+                        cancelar_pedido(pedido.idorders)
+                        st.experimental_rerun()  # Re-renderiza la página para reflejar cambios
+
     except Exception as e:
         st.error(f"Ocurrió un error al cargar el historial de pedidos: {e}")
     finally:
         db.close()
-
 def verificar_estado_pedidos():
     db = SessionLocal()
     try:
@@ -413,8 +387,7 @@ def generar_boleta(carrito, productos, order_id):
 def finalizar_pedido(productos):
     carrito = st.session_state.get('carrito', {})
     total_cents = st.session_state.get('total_pedido', 0)
-    total_pesos = total_cents / 100.0  # Convertir a pesos para la preferencia
-
+    total_cents = int(st.session_state.get('total_pedido', 0))
     if carrito:
         db = SessionLocal()
         try:
@@ -442,7 +415,7 @@ def finalizar_pedido(productos):
                             order_id=order_id,
                             product_id=producto.idproductos,
                             quantity=detalle['cantidad'],
-                            unit_price=detalle['precio']
+                            unit_price=int(detalle['precio'])  # Asegurar que es entero
                         )
                         db.add(order_item)
                         # Preparar los items para MercadoPago
@@ -450,7 +423,7 @@ def finalizar_pedido(productos):
                             "title": nombre,
                             "quantity": detalle['cantidad'],
                             "currency_id": "CLP",
-                            "unit_price": float(detalle['precio'])
+                            "unit_price": int(detalle['precio'])  # Convertir a entero (centavos)
                         })
                     else:
                         st.error(f"No hay suficiente stock para {nombre}.")
@@ -483,7 +456,8 @@ def finalizar_pedido(productos):
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
 
-            
+            # Mostrar el enlace de pago directamente en la boleta
+            st.markdown(f"[**Pagar Ahora en MercadoPago**]({init_point})", unsafe_allow_html=True)
 
             # Opcional: Botones para Pagar, Modificar o Cancelar Pedido
             st.markdown("---")
@@ -522,13 +496,20 @@ def finalizar_pedido(productos):
                 else:
                     st.error("No se encontró el pedido para cancelar.")
 
+            # Limpiar el carrito y otras variables si es necesario
+            if opcion in ["Modificar Pedido", "Cancelar Pedido"]:
+                st.session_state.carrito = {}
+                st.session_state.total_pedido = 0
+                st.session_state.boleta_generada = False
+                st.session_state.mostrar_boton_pago = False
+
         except Exception as e:
             db.rollback()
             st.error(f"Error al finalizar el pedido: {e}")
             return
         finally:
             db.close()
-
+            
 def mostrar_menu_interactivo(productos):
     productos = sorted(productos, key=lambda p: p.idproductos)
     # CSS para permitir scroll vertical dentro del expander (opcional)
