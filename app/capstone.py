@@ -429,18 +429,42 @@ def finalizar_pedido(productos):
             db.refresh(new_order)
             order_id = new_order.idorders
 
-            # Crear los items para MercadoPago
+            # Crear los items para MercadoPago y OrderItems en la base de datos
             items = []
             for nombre, detalle in st.session_state.carrito.items():
-                items.append({
-                    "title": nombre,
-                    "quantity": detalle['cantidad'],
-                    "currency_id": "CLP",
-                    "unit_price": detalle['precio']
-                })
+                producto = db.query(Producto).filter(Producto.nombre == nombre).first()
+                if producto:
+                    # Verificar stock
+                    if producto.stock >= detalle['cantidad']:
+                        producto.stock -= detalle['cantidad']
+                        # Crear OrderItem
+                        order_item = OrderItem(
+                            order_id=order_id,
+                            product_id=producto.idproductos,
+                            quantity=detalle['cantidad'],
+                            unit_price=detalle['precio']
+                        )
+                        db.add(order_item)
+                        # Preparar los items para MercadoPago
+                        items.append({
+                            "title": nombre,
+                            "quantity": detalle['cantidad'],
+                            "currency_id": "CLP",
+                            "unit_price": float(detalle['precio'])
+                        })
+                    else:
+                        st.error(f"No hay suficiente stock para {nombre}.")
+                        db.rollback()
+                        return
+                else:
+                    st.error(f"Producto {nombre} no encontrado.")
+                    db.rollback()
+                    return
 
-            # Crear preferencia de pago
-            init_point = crear_preferencia(order_id, total_cents)
+            db.commit()  # Confirmar cambios de stock y OrderItems
+
+            # Crear preferencia de pago en MercadoPago
+            init_point = crear_preferencia(order_id, items)
 
             if not init_point:
                 st.error("No se pudo crear la preferencia de pago.")
@@ -459,14 +483,44 @@ def finalizar_pedido(productos):
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
 
-            # Mostrar el enlace de pago directamente en la boleta
-            st.markdown(f"[**Pagar Ahora en MercadoPago**]({init_point})", unsafe_allow_html=True)
+            
 
+            # Opcional: Botones para Pagar, Modificar o Cancelar Pedido
+            st.markdown("---")
+            st.write("### Opciones:")
+            opcion = st.radio(
+                "Selecciona una opción:",
+                ("Pagar con MercadoPago", "Modificar Pedido", "Cancelar Pedido")
+            )
 
-            # Limpiar el carrito y otras variables
-            st.session_state.carrito = {}
-            st.session_state.boleta_generada = False
-            st.session_state.mostrar_boton_pago = False
+            if opcion == "Pagar con MercadoPago":
+                st.write(f"Redirigiendo a MercadoPago para el pedido #{order_id}...")
+                js = f"""
+                <script>
+                window.open("{init_point}", "_blank");
+                </script>
+                """
+                st.markdown(js, unsafe_allow_html=True)
+
+            elif opcion == "Modificar Pedido":
+                st.session_state.carrito = {}
+                st.session_state.total_pedido = 0
+                st.session_state.menu_mostrado = True
+                st.success("Puedes modificar tu pedido seleccionando los productos nuevamente.")
+
+            elif opcion == "Cancelar Pedido":
+                # Cancelar el pedido en la base de datos
+                pedido = db.query(Order).filter(Order.idorders == order_id).first()
+                if pedido:
+                    pedido.status = "cancelado"
+                    db.commit()
+                    st.session_state.carrito = {}
+                    st.session_state.total_pedido = 0
+                    st.session_state.boleta_generada = False
+                    st.session_state.mostrar_boton_pago = False
+                    st.success("Pedido cancelado exitosamente. ¡Gracias por utilizar nuestro sistema!")
+                else:
+                    st.error("No se encontró el pedido para cancelar.")
 
         except Exception as e:
             db.rollback()
@@ -474,9 +528,6 @@ def finalizar_pedido(productos):
             return
         finally:
             db.close()
-    else:
-        st.warning("No hay productos en el carrito para finalizar el pedido.")
-
 
 def mostrar_menu_interactivo(productos):
     productos = sorted(productos, key=lambda p: p.idproductos)
