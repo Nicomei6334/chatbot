@@ -385,7 +385,6 @@ def generar_boleta(carrito, productos, order_id):
 
 def finalizar_pedido(productos):
     carrito = st.session_state.get('carrito', {})
-    total_cents = st.session_state.get('total_pedido', 0)
     total_cents = int(st.session_state.get('total_pedido', 0))
     if carrito:
         db = SessionLocal()
@@ -402,9 +401,10 @@ def finalizar_pedido(productos):
             order_id = new_order.idorders
 
             # Crear los items para MercadoPago y OrderItems en la base de datos
+            # Crear los items para MercadoPago y OrderItems en la base de datos
             items = []
             for nombre, detalle in st.session_state.carrito.items():
-                producto = db.query(Producto).filter(Producto.nombre == nombre).first()
+                producto = db.query(Producto).filter(Producto.nombre == nombre.strip()).first()  # Quitar espacios
                 if producto:
                     # Verificar stock
                     if producto.stock >= detalle['cantidad']:
@@ -419,17 +419,17 @@ def finalizar_pedido(productos):
                         db.add(order_item)
                         # Preparar los items para MercadoPago
                         items.append({
-                            "title": nombre,
+                            "title": nombre.strip(),  # Quitar espacios
                             "quantity": detalle['cantidad'],
                             "currency_id": "CLP",
-                            "unit_price": int(detalle['precio'])  # Convertir a entero (centavos)
+                            "unit_price": int(detalle['precio'])  # Convertir a entero (CLP)
                         })
                     else:
-                        st.error(f"No hay suficiente stock para {nombre}.")
+                        st.error(f"No hay suficiente stock para '{nombre.strip()}'.")
                         db.rollback()
                         return
                 else:
-                    st.error(f"Producto {nombre} no encontrado.")
+                    st.error(f"Producto '{nombre.strip()}' no encontrado.")
                     db.rollback()
                     return
 
@@ -442,9 +442,6 @@ def finalizar_pedido(productos):
                 st.error("No se pudo crear la preferencia de pago.")
                 return
 
-            # Almacenar el enlace de pago en la base de datos
-            new_order.preference_url = init_point
-            db.commit()
 
             # Generar la boleta
             boleta, _ = generar_boleta(carrito, productos, order_id)
@@ -455,8 +452,7 @@ def finalizar_pedido(productos):
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
 
-            # Mostrar el enlace de pago directamente en la boleta
-            st.markdown(f"[**Pagar Ahora en MercadoPago**]({init_point})", unsafe_allow_html=True)
+           
 
             # Opcional: Botones para Pagar, Modificar o Cancelar Pedido
             st.markdown("---")
