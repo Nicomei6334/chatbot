@@ -90,7 +90,7 @@ def initialize_session():
     if 'mostrar_boton_pago' not in st.session_state:
         st.session_state.mostrar_boton_pago = False
     if 'user_id' not in st.session_state:
-        st.session_state.user_id = obtener_user_id()  # Implementa esta función según tu lógica de autenticación
+        st.session_state.user_id = obtener_user_id()  # Inicializa a None si no está logueado
     if 'ultimo_pedido_aprobado' not in st.session_state:
         st.session_state.ultimo_pedido_aprobado = False
 
