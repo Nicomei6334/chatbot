@@ -387,9 +387,6 @@ def finalizar_pedido(productos):
     carrito = st.session_state.get('carrito', {})
     total_cents = int(st.session_state.get('total_pedido', 0))  # Asegurarse de que es entero
 
-    # Depuración: Mostrar el total en centavos
-    st.write(f"Total en centavos: {total_cents}")
-
     if carrito:
         db = SessionLocal()
         try:
@@ -404,17 +401,13 @@ def finalizar_pedido(productos):
             db.refresh(new_order)
             order_id = new_order.idorders
 
-            # Depuración: Mostrar el ID de la nueva orden
-            st.write(f"ID de la nueva orden: {order_id}")
+            # Almacenar el order_id en la sesión para poder cancelarlo desde el chatbot
+            st.session_state['current_order_id'] = order_id
 
             # Crear los items para MercadoPago y OrderItems en la base de datos
             items = []
             for nombre, detalle in st.session_state.carrito.items():
-                # Depuración: Mostrar el nombre original
-                st.write(f"Nombre original en carrito: '{nombre}'")
                 nombre_limpio = nombre.strip()
-                st.write(f"Nombre limpio para búsqueda: '{nombre_limpio}'")
-
                 producto = db.query(Producto).filter(Producto.nombre == nombre_limpio).first()
                 if producto:
                     # Verificar stock
@@ -435,8 +428,6 @@ def finalizar_pedido(productos):
                             "currency_id": "CLP",
                             "unit_price": int(detalle['precio'])  # Convertir a entero (CLP)
                         })
-                        # Depuración: Mostrar detalles del item agregado
-                        st.write(f"Item agregado: {items[-1]}")
                     else:
                         st.error(f"No hay suficiente stock para '{nombre_limpio}'.")
                         db.rollback()
@@ -448,14 +439,8 @@ def finalizar_pedido(productos):
 
             db.commit()  # Confirmar cambios de stock y OrderItems
 
-            # Depuración: Mostrar los items preparados para MercadoPago
-            st.write(f"Items preparados para MercadoPago: {items}")
-
             # Crear preferencia de pago en MercadoPago
             init_point = crear_preferencia(order_id, items)
-
-            # Depuración: Mostrar el init_point
-            st.write(f"Init Point: {init_point}")
 
             if not init_point:
                 st.error("No se pudo crear la preferencia de pago.")
@@ -473,59 +458,18 @@ def finalizar_pedido(productos):
             # Mostrar el enlace de pago directamente en la boleta
             st.markdown(f"[**Pagar Ahora en MercadoPago**]({init_point})", unsafe_allow_html=True)
 
-            # Opcional: Selección de opciones con confirmación mediante formulario
+            # Opcional: Botón para Modificar Pedido
             st.markdown("---")
             st.write("### Opciones:")
+            
+            if st.button("Modificar Pedido"):
+                st.session_state.carrito = {}
+                st.session_state.total_pedido = 0
+                st.session_state.menu_mostrado = True
+                st.success("Puedes modificar tu pedido seleccionando los productos nuevamente.")
 
-            with st.form(key='confirm_form'):
-                opcion = st.selectbox(
-                    "Selecciona una opción:",
-                    ("Selecciona una opción", "Pagar con MercadoPago", "Modificar Pedido", "Cancelar Pedido")
-                )
-                confirmar = st.form_submit_button(label='Confirmar')
-
-                if confirmar:
-                    if opcion == "Selecciona una opción":
-                        st.warning("Por favor, selecciona una opción válida.")
-                    elif opcion == "Pagar con MercadoPago":
-                        st.write(f"Redirigiendo a MercadoPago para el pedido #{order_id}...")
-                        js = f"""
-                        <script>
-                        window.open("{init_point}", "_blank");
-                        </script>
-                        """
-                        st.markdown(js, unsafe_allow_html=True)
-                        st.success("Redirigiendo al pago...")
-                    elif opcion == "Modificar Pedido":
-                        st.session_state.carrito = {}
-                        st.session_state.total_pedido = 0
-                        st.session_state.menu_mostrado = True
-                        st.success("Puedes modificar tu pedido seleccionando los productos nuevamente.")
-                    elif opcion == "Cancelar Pedido":
-                        # Cancelar el pedido en la base de datos
-                        pedido = db.query(Order).filter(Order.idorders == order_id).first()
-                        if pedido:
-                            pedido.status = "cancelado"
-                            db.commit()
-                            st.session_state.carrito = {}
-                            st.session_state.total_pedido = 0
-                            st.session_state.boleta_generada = False
-                            st.session_state.mostrar_boton_pago = False
-                            
-                            # Limpiar solo las claves relacionadas con el pedido
-                            keys_to_delete = ['carrito', 'total_pedido', 'boleta_generada', 'boleta', 'mostrar_boton_pago']
-                            for key in keys_to_delete:
-                                if key in st.session_state:
-                                    del st.session_state[key]
-                            
-                            # Mostrar mensaje de agradecimiento
-                            st.markdown("""
-                                <div style="text-align: center; font-size: 24px; color: green;">
-                                    ¡Gracias por preferirnos! 😊
-                                </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.error("No se encontró el pedido para cancelar.")
+            # Mensaje para cancelar via chatbot
+            st.write("Si deseas cancelar tu pedido, por favor escribe 'salir' al chatbot.")
 
         except Exception as e:
             db.rollback()
@@ -534,6 +478,8 @@ def finalizar_pedido(productos):
             return
         finally:
             db.close()
+    else:
+        st.warning("No hay productos en el carrito para finalizar el pedido.")
             
 def mostrar_menu_interactivo(productos):
     productos = sorted(productos, key=lambda p: p.idproductos)
