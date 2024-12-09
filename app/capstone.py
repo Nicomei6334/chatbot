@@ -452,55 +452,65 @@ def finalizar_pedido(productos):
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
 
-           
-
-            # Opcional: Botones para Pagar, Modificar o Cancelar Pedido
+            # Opcional: Selección de opciones con confirmación
             st.markdown("---")
             st.write("### Opciones:")
-            opcion = st.radio(
-                "Selecciona una opción:",
-                ("Pagar con MercadoPago", "Modificar Pedido", "Cancelar Pedido")
-            )
-
-            if opcion == "Pagar con MercadoPago":
-                st.write(f"Redirigiendo a MercadoPago para el pedido #{order_id}...")
-                js = f"""
-                <script>
-                window.open("{init_point}", "_blank");
-                </script>
-                """
-                st.markdown(js, unsafe_allow_html=True)
-
-            elif opcion == "Modificar Pedido":
-                st.session_state.carrito = {}
-                st.session_state.total_pedido = 0
-                st.session_state.menu_mostrado = True
-                st.success("Puedes modificar tu pedido seleccionando los productos nuevamente.")
-
-            elif opcion == "Cancelar Pedido":
-                # Cancelar el pedido en la base de datos
-                pedido = db.query(Order).filter(Order.idorders == order_id).first()
-                if pedido:
-                    pedido.status = "cancelado"
-                    db.commit()
-                    st.session_state.carrito = {}
-                    st.session_state.total_pedido = 0
-                    st.session_state.boleta_generada = False
-                    st.session_state.mostrar_boton_pago = False
-                    st.success("Pedido cancelado exitosamente. ¡Gracias por utilizar nuestro sistema!")
-                else:
-                    st.error("No se encontró el pedido para cancelar.")
-
-            # Limpiar el carrito y otras variables si es necesario
-            if opcion in ["Modificar Pedido", "Cancelar Pedido"]:
-                st.session_state.carrito = {}
-                st.session_state.total_pedido = 0
-                st.session_state.boleta_generada = False
-                st.session_state.mostrar_boton_pago = False
+            
+            # Crear un contenedor para las opciones
+            options_container = st.container()
+            with options_container:
+                # Selección de opción
+                opcion = st.selectbox(
+                    "Selecciona una opción:",
+                    ("Selecciona una opción", "Pagar con MercadoPago", "Modificar Pedido", "Cancelar Pedido")
+                )
+                
+                # Botón de confirmación
+                if st.button("Confirmar"):
+                    if opcion == "Selecciona una opción":
+                        st.warning("Por favor, selecciona una opción válida.")
+                    elif opcion == "Pagar con MercadoPago":
+                        st.write(f"Redirigiendo a MercadoPago para el pedido #{order_id}...")
+                        js = f"""
+                        <script>
+                        window.open("{init_point}", "_blank");
+                        </script>
+                        """
+                        st.markdown(js, unsafe_allow_html=True)
+                        st.success("Redirigiendo al pago...")
+                    elif opcion == "Modificar Pedido":
+                        st.session_state.carrito = {}
+                        st.session_state.total_pedido = 0
+                        st.session_state.menu_mostrado = True
+                        st.success("Puedes modificar tu pedido seleccionando los productos nuevamente.")
+                    elif opcion == "Cancelar Pedido":
+                        # Cancelar el pedido en la base de datos
+                        pedido = db.query(Order).filter(Order.idorders == order_id).first()
+                        if pedido:
+                            pedido.status = "cancelado"
+                            db.commit()
+                            st.session_state.carrito = {}
+                            st.session_state.total_pedido = 0
+                            st.session_state.boleta_generada = False
+                            st.session_state.mostrar_boton_pago = False
+                            
+                            # Limpiar todo lo que aparece en la parte de chatbot
+                            for key in st.session_state.keys():
+                                del st.session_state[key]
+                            
+                            # Mostrar mensaje de agradecimiento
+                            st.markdown("""
+                                <div style="text-align: center; font-size: 24px; color: green;">
+                                    ¡Gracias por preferirnos! 😊
+                                </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.error("No se encontró el pedido para cancelar.")
 
         except Exception as e:
             db.rollback()
             st.error(f"Error al finalizar el pedido: {e}")
+            logger.error(f"Error al finalizar el pedido: {e}")
             return
         finally:
             db.close()
