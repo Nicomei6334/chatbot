@@ -243,40 +243,7 @@ def get_response(intents_list, intents_json, message):
                     result = respuesta
                 else:
                     result = "Por favor, especifica el producto y la cantidad que deseas agregar."
-            elif tag == 'eliminar_carrito':
-                # Extraer el nombre del producto
-                pattern = r"(?i)(?:eliminar|quitar|remover|sacar|elimina|puedes eliminar)\s*(?:del\s*carrito\s*)?(.*)"
-                matches = re.findall(pattern, message)
-                if matches:
-                    nombre_producto = matches[0].strip()
-                    respuesta = eliminar_producto_carrito(nombre_producto)
-                    result = respuesta
-                else:
-                    result = "Por favor, indica el producto que deseas eliminar."
-            elif tag == 'consultar_carrito':
-                contenido = ver_carrito()
-                result = contenido
-            elif tag == 'realizar_compra':
-                if st.session_state.logged_in:
-                    total = calcular_total()
-                    result = i['responses'][0].replace('{total}', f"{total:,.0f}")
-                else:
-                    result = "Por favor, inicia sesión para realizar una compra."
-            elif tag == 'confirmar_pago':
-                if st.session_state.logged_in:
-                    # Generar boleta y preparar botón de Finalizar Compra
-                    boleta = generar_boleta()
-                    result = boleta
-                    st.session_state.carrito = {}  # Vaciar el carrito después de confirmar pago
-                    st.session_state.boleta_generada = True  # Indicador para mostrar el botón
-                else:
-                    result = "Por favor, inicia sesión para confirmar el pago."
-            elif tag == 'consultar_historial':
-                if st.session_state.logged_in:
-                    contenido = ver_historial_pedidos()
-                    result = contenido
-                else:
-                    result = "Por favor, inicia sesión para consultar tu historial de pedidos."
+
             elif tag == 'cancelar':
                 result = random.choice(i['responses'])
                 # Ocultar el menú al cancelar
