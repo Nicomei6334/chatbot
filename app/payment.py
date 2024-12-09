@@ -23,28 +23,20 @@ if not WEBHOOK_URL:
     logger.error("WEBHOOK_URL no está configurada.")
     st.error("Configuración de Webhook no encontrada. Por favor, revisa las variables de entorno.")
 
-def crear_preferencia(order_id, total):
+def crear_preferencia(order_id, items):
     """
     Crea una preferencia de pago en MercadoPago.
 
     Args:
         order_id (int): ID del pedido.
-        total (float): Total del pedido en CLP.
+        items (list): Lista de diccionarios con detalles de los items.
 
     Returns:
         str: URL de inicio de pago de MercadoPago o None si falla.
     """    
-     # Convertir el total a entero para cumplir con los requisitos de MercadoPago
-    total_int = int(total)
+
     preference_data = {
-        "items": [
-            {
-                "title": f"Pedido #{order_id}",
-                "quantity": 1,
-                "currency_id": "CLP",  # Asegúrate de usar la moneda correcta
-                "unit_price": total_int
-            }
-        ],
+        "items": items,  # Lista de items
         "external_reference": str(order_id),  # Asociar la preferencia con la orden
         "back_urls": {
             "success": f"https://chatbotverduras.streamlit.app?payment_status=approved&order_id={order_id}",
