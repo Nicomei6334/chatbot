@@ -434,29 +434,6 @@ def finalizar_pedido(productos):
             # Mostrar el enlace de pago directamente en la boleta
             st.markdown(f"[**Pagar Ahora en MercadoPago**]({init_point})", unsafe_allow_html=True)
 
-            # Opcional: Botón que redirige al usuario al enlace de pago (recomendado usar el enlace anterior)
-            # Si aún deseas usar un botón, puedes usar el siguiente enfoque alternativo
-            # (Nota: Puede no funcionar en todos los navegadores)
-            # Importar al inicio si no lo has hecho
-            import streamlit.components.v1 as components
-
-            if st.button("Pagar con MercadoPago"):
-                pagar_url = init_point  # Enlace de pago
-                # Crear un HTML simple con JavaScript para abrir una nueva pestaña
-                html_code = f"""
-                <html>
-                    <head>
-                        <script type="text/javascript">
-                            window.open("{pagar_url}", "_blank");
-                        </script>
-                    </head>
-                    <body>
-                        <p>Redirigiendo a MercadoPago...</p>
-                    </body>
-                </html>
-                """
-                # Renderizar el HTML en Streamlit
-                components.html(html_code, height=100)
 
             # Limpiar el carrito y otras variables
             st.session_state.carrito = {}
