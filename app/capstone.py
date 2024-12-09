@@ -75,8 +75,6 @@ def initialize_session():
         st.session_state.logged_in = False
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
-    if "user_id" not in st.session_state:
-        st.session_state.user_id = None
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "carrito" not in st.session_state:
@@ -87,6 +85,15 @@ def initialize_session():
         st.session_state.menu_mostrado = False
     if "first_message" not in st.session_state:
         st.session_state.first_message = True
+    if 'total_pedido' not in st.session_state:
+        st.session_state.total_pedido = 0
+    if 'mostrar_boton_pago' not in st.session_state:
+        st.session_state.mostrar_boton_pago = False
+    if 'user_id' not in st.session_state:
+        st.session_state.user_id = obtener_user_id()  # Implementa esta función según tu lógica de autenticación
+    if 'ultimo_pedido_aprobado' not in st.session_state:
+        st.session_state.ultimo_pedido_aprobado = False
+
     if "login_attempts" not in st.session_state:
         st.session_state.login_attempts = {}
 
@@ -309,8 +316,24 @@ def ver_historial_pedidos():
     finally:
         db.close()
 
+def verificar_estado_pedidos():
+    db = SessionLocal()
+    try:
+        # Obtener los pedidos del usuario con estado 'aprobado' recientes
+        pedido_aprobado = db.query(Order).filter(
+            Order.user_id == st.session_state.user_id,
+            Order.status == "aprobado"
+        ).order_by(Order.timestamp.desc()).first()
 
-
+        if pedido_aprobado and not st.session_state.get('ultimo_pedido_aprobado', False):
+            st.session_state['ultimo_pedido_aprobado'] = True
+    except Exception as e:
+        st.error(f"Error al verificar el estado de los pedidos: {e}")
+    finally:
+        db.close()
+def obtener_user_id():
+  return 1
+    
 def cancelar_pedido(order_id):
     db = SessionLocal()
     try:
@@ -623,7 +646,7 @@ def actualizar_stock(producto_nombre, cantidad_comprada):
 def chatbot_page():
     productos = cargar_productos()
     st.header("Bienvenido a tu chatbot de venta de verduras")
-
+    
     # Mensaje de bienvenida si es la primera vez
     if st.session_state.first_message:
         with st.chat_message("assistant"):
