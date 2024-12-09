@@ -247,9 +247,21 @@ def get_response(intents_list, intents_json, message):
                     nombre_producto = nombre_producto.strip()
                     respuesta = agregar_producto_carrito(nombre_producto, cantidad)
                     result = respuesta
+                
                 else:
                     result = "Por favor, especifica el producto y la cantidad que deseas agregar."
-
+            elif tag == 'despedida':
+                # Limpiar toda la sesión y mostrar mensaje de agradecimiento
+                st.session_state.carrito = {}
+                st.session_state.total_pedido = 0
+                st.session_state.boleta_generada = False
+                st.session_state.mostrar_boton_pago = False
+                st.session_state.menu_mostrado = False
+                # Opcional: Limpiar otras variables de sesión si es necesario
+                for key in list(st.session_state.keys()):
+                    if key not in ['carrito', 'total_pedido', 'boleta_generada', 'mostrar_boton_pago', 'menu_mostrado']:
+                        del st.session_state[key]
+                result = random.choice(i['responses'])
             elif tag == 'cancelar':
                 # Cancelar el pedido y mostrar agradecimiento
                 # Asumiendo que 'current_order_id' está almacenado en session_state
