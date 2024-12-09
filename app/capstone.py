@@ -355,7 +355,7 @@ def cancelar_pedido(order_id):
 
 def generar_boleta(carrito, productos, order_id):
     if carrito:
-        contenido = "### 🧾 Boleta de Compra #{order_id}\n\n"
+        contenido = f"### 🧾 Boleta de Compra #{order_id}\n\n"
         contenido += "| Producto | Cantidad | Subtotal (CLP) | IVA (19%) (CLP) | Total (CLP) |\n"
         contenido += "|---|---|---|---|---|\n"
         subtotal_sin_iva = 0
@@ -375,11 +375,9 @@ def generar_boleta(carrito, productos, order_id):
                 total_con_iva += total_producto
                 contenido += f"| {nombre} | {cantidad} | ${subtotal_producto:,.0f} | ${iva_producto:,.0f} | ${total_producto:,.0f} |\n"
 
-        contenido += "\n"
-        contenido += f"**Subtotal (sin IVA):** ${subtotal_sin_iva:,.0f} CLP\n\n"
-        contenido += f"**IVA (19%)**: ${iva_total:,.0f} CLP\n\n"
+        contenido += f"\n**Subtotal (sin IVA):** ${subtotal_sin_iva:,.0f} CLP\n\n"
+        contenido += f"**IVA (19%):** ${iva_total:,.0f} CLP\n\n"
         contenido += f"**Total:** ${total_con_iva:,.0f} CLP\n\n"
-
         db.close()
         return contenido, total_con_iva
     else:
