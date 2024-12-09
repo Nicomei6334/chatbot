@@ -44,7 +44,7 @@ def crear_preferencia(order_id, items):
             "pending": f"https://chatbotverduras.streamlit.app?payment_status=pending&order_id={order_id}"
         },
         "auto_return": "approved",
-        "notification_url": WEBHOOK_URL  # URL de tu webhook
+        "notification_url":https://southamerica-west1-chatbot-444106.cloudfunctions.net/webhook # URL de tu webhook
     }
     try:
         preference_response = sdk.preference().create(preference_data)
