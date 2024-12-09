@@ -385,7 +385,11 @@ def generar_boleta(carrito, productos, order_id):
 
 def finalizar_pedido(productos):
     carrito = st.session_state.get('carrito', {})
-    total_cents = int(st.session_state.get('total_pedido', 0))
+    total_cents = int(st.session_state.get('total_pedido', 0))  # Asegurarse de que es entero
+
+    # Depuración: Mostrar el total en centavos
+    st.write(f"Total en centavos: {total_cents}")
+
     if carrito:
         db = SessionLocal()
         try:
@@ -400,11 +404,18 @@ def finalizar_pedido(productos):
             db.refresh(new_order)
             order_id = new_order.idorders
 
-            # Crear los items para MercadoPago y OrderItems en la base de datos
+            # Depuración: Mostrar el ID de la nueva orden
+            st.write(f"ID de la nueva orden: {order_id}")
+
             # Crear los items para MercadoPago y OrderItems en la base de datos
             items = []
             for nombre, detalle in st.session_state.carrito.items():
-                producto = db.query(Producto).filter(Producto.nombre == nombre.strip()).first()  # Quitar espacios
+                # Depuración: Mostrar el nombre original
+                st.write(f"Nombre original en carrito: '{nombre}'")
+                nombre_limpio = nombre.strip()
+                st.write(f"Nombre limpio para búsqueda: '{nombre_limpio}'")
+
+                producto = db.query(Producto).filter(Producto.nombre == nombre_limpio).first()
                 if producto:
                     # Verificar stock
                     if producto.stock >= detalle['cantidad']:
@@ -419,29 +430,36 @@ def finalizar_pedido(productos):
                         db.add(order_item)
                         # Preparar los items para MercadoPago
                         items.append({
-                            "title": nombre.strip(),  # Quitar espacios
+                            "title": nombre_limpio,  # Usar nombre limpio
                             "quantity": detalle['cantidad'],
                             "currency_id": "CLP",
                             "unit_price": int(detalle['precio'])  # Convertir a entero (CLP)
                         })
+                        # Depuración: Mostrar detalles del item agregado
+                        st.write(f"Item agregado: {items[-1]}")
                     else:
-                        st.error(f"No hay suficiente stock para '{nombre.strip()}'.")
+                        st.error(f"No hay suficiente stock para '{nombre_limpio}'.")
                         db.rollback()
                         return
                 else:
-                    st.error(f"Producto '{nombre.strip()}' no encontrado.")
+                    st.error(f"Producto '{nombre_limpio}' no encontrado.")
                     db.rollback()
                     return
 
             db.commit()  # Confirmar cambios de stock y OrderItems
 
+            # Depuración: Mostrar los items preparados para MercadoPago
+            st.write(f"Items preparados para MercadoPago: {items}")
+
             # Crear preferencia de pago en MercadoPago
             init_point = crear_preferencia(order_id, items)
+
+            # Depuración: Mostrar el init_point
+            st.write(f"Init Point: {init_point}")
 
             if not init_point:
                 st.error("No se pudo crear la preferencia de pago.")
                 return
-
 
             # Generar la boleta
             boleta, _ = generar_boleta(carrito, productos, order_id)
@@ -452,21 +470,21 @@ def finalizar_pedido(productos):
             # Mostrar la boleta
             st.markdown(boleta, unsafe_allow_html=True)
 
-            # Opcional: Selección de opciones con confirmación
+            # Mostrar el enlace de pago directamente en la boleta
+            st.markdown(f"[**Pagar Ahora en MercadoPago**]({init_point})", unsafe_allow_html=True)
+
+            # Opcional: Selección de opciones con confirmación mediante formulario
             st.markdown("---")
             st.write("### Opciones:")
-            
-            # Crear un contenedor para las opciones
-            options_container = st.container()
-            with options_container:
-                # Selección de opción
+
+            with st.form(key='confirm_form'):
                 opcion = st.selectbox(
                     "Selecciona una opción:",
                     ("Selecciona una opción", "Pagar con MercadoPago", "Modificar Pedido", "Cancelar Pedido")
                 )
-                
-                # Botón de confirmación
-                if st.button("Confirmar"):
+                confirmar = st.form_submit_button(label='Confirmar')
+
+                if confirmar:
                     if opcion == "Selecciona una opción":
                         st.warning("Por favor, selecciona una opción válida.")
                     elif opcion == "Pagar con MercadoPago":
@@ -494,9 +512,11 @@ def finalizar_pedido(productos):
                             st.session_state.boleta_generada = False
                             st.session_state.mostrar_boton_pago = False
                             
-                            # Limpiar todo lo que aparece en la parte de chatbot
-                            for key in st.session_state.keys():
-                                del st.session_state[key]
+                            # Limpiar solo las claves relacionadas con el pedido
+                            keys_to_delete = ['carrito', 'total_pedido', 'boleta_generada', 'boleta', 'mostrar_boton_pago']
+                            for key in keys_to_delete:
+                                if key in st.session_state:
+                                    del st.session_state[key]
                             
                             # Mostrar mensaje de agradecimiento
                             st.markdown("""
