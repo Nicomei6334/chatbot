@@ -435,7 +435,7 @@ def finalizar_pedido(productos):
             st.session_state.carrito = {}
             st.session_state.boleta_generada = False
             st.session_state.mostrar_boton_pago = False
-            except Exception as e:
+        except Exception as e:
             db.rollback()
             st.error(f"Error al finalizar el pedido: {e}")
             return
